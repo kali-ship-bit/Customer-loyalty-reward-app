@@ -1,10 +1,149 @@
+import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { MobileNav } from "./Sidebar";
 
 export function Wallet({ onTabChange }) {
+  const [copiedCode, setCopiedCode] = useState("");
+  const [message, setMessage] = useState("");
+  const [showFullHistory, setShowFullHistory] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [points, setPoints] = useState(2480);
+
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+  
+      setCopiedCode(code);
+      setMessage("Voucher code copied successfully.");
+  
+      setTimeout(() => {
+        setCopiedCode("");
+        setMessage("");
+      }, 2000);
+    } catch {
+      setMessage("Unable to copy the voucher code.");
+    }
+  };
+
+  const handleShare = async () => {
+    const referralLink = "https://example.com/ref/MAYA-REWARD-2024";
+  
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Join Maya Rewards",
+          text: "Join me on the rewards program and get a free drink on your first order!",
+          url: referralLink,
+        });
+  
+        setMessage("Referral link shared successfully.");
+      } else {
+        await navigator.clipboard.writeText(referralLink);
+        setMessage("Referral link copied.");
+      }
+    } catch {
+      setMessage("Sharing was cancelled.");
+    }
+  
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
+  };
+
+
+
+  const handleTransactionClick = (entry) => {
+    setSelectedTransaction(entry);
+  };
+
+  const pointsHistory = [
+    {
+      id: 1,
+      label: "Order #4492 – Harbor Coffee",
+      date: "Jun 24, 2024 · Earned",
+      pts: "+120 pts",
+      positive: true,
+    },
+    {
+      id: 2,
+      label: "Redeemed Free Coffee Voucher",
+      date: "Jun 22, 2024 · Spent",
+      pts: "-300 pts",
+      positive: false,
+    },
+    {
+      id: 3,
+      label: "Double Points Weekend Bonus",
+      date: "Jun 18, 2024 · Bonus",
+      pts: "+250 pts",
+      positive: true,
+    },
+    {
+      id: 4,
+      label: "Order #4478 – Harbor Coffee",
+      date: "Jun 15, 2024 · Earned",
+      pts: "+180 pts",
+      positive: true,
+    },
+    {
+      id: 5,
+      label: "Redeemed Extra Flavor Shot",
+      date: "Jun 12, 2024 · Spent",
+      pts: "-150 pts",
+      positive: false,
+    },
+    {
+      id: 6,
+      label: "Birthday Bonus",
+      date: "Jun 10, 2024 · Bonus",
+      pts: "+500 pts",
+      positive: true,
+    },
+  ];
+
+  const birthdayDate = new Date("2026-10-21");
+
+  const today = new Date();
+
+  const timeDifference = birthdayDate.getTime() - today.getTime();
+
+  const daysUntilBirthday = Math.max(
+    Math.ceil(timeDifference / (1000 * 60 * 60 * 24)),
+    0
+  );
+  
+  const vouchers = [
+    {
+      id: 1,
+      title: "$5 Off Any Food Item",
+      code: "VOUCHER-5FOOD",
+      iconColor: "primary",
+    },
+    {
+      id: 2,
+      title: "Free Oat Milk Upgrade",
+      code: "OAT-UPGRADE",
+      iconColor: "accent",
+    },
+  ];
+  
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
-      {/* ── Header ── */}
+
+    {message && (
+      <div className="fixed top-20 right-5 z-50">
+        <div className="alert bg-card border border-border shadow-lg">
+          <Icon
+            icon="solar:check-circle-bold"
+            className="size-5 text-accent"
+          />
+          <span className="text-sm font-medium">
+            {message}
+          </span>
+        </div>
+      </div>
+    )}
+          {/* ── Header ── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl px-5 md:px-8 pt-6 pb-4 border-b border-border/40">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pass & Wallet</h1>
@@ -38,7 +177,9 @@ export function Wallet({ onTabChange }) {
                 <div className="flex items-end justify-between mb-8">
                   <div>
                     <span className="text-sm font-medium text-white/60">Points balance</span>
-                    <p className="text-4xl font-bold text-white mt-1">2,480</p>
+                    <p className="text-4xl font-bold text-white mt-1">
+                      {points.toLocaleString()}
+                    </p>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium text-white/60">Member ID</span>
@@ -71,7 +212,10 @@ export function Wallet({ onTabChange }) {
                     Upcoming perk
                   </span>
                   <p className="text-lg font-bold mt-1">Birthday Free Specialty Drink</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">Available on July 14 (3 weeks away)</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Available on October 21 ({daysUntilBirthday}{" "}
+                    {daysUntilBirthday === 1 ? "day" : "days"} away)
+                  </p>
                 </div>
                 <span className="badge bg-accent text-accent-foreground border-none font-bold py-3 px-4 hidden sm:inline-flex">
                   Auto-claim
@@ -83,7 +227,7 @@ export function Wallet({ onTabChange }) {
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold">Active voucher codes</h2>
-                <span className="badge bg-primary/10 text-primary border-none font-bold">2 Active</span>
+                <span className="badge bg-primary/10 text-primary border-none font-bold">{vouchers.length} Active</span>
               </div>
               <div className="space-y-4">
                 {/* Voucher 1 — primary */}
@@ -99,8 +243,11 @@ export function Wallet({ onTabChange }) {
                           <p className="font-mono text-sm font-bold text-muted-foreground mt-0.5">VOUCHER-5FOOD</p>
                         </div>
                       </div>
-                      <button className="btn btn-sm btn-primary btn-outline w-full sm:w-auto shrink-0">
-                        Copy code
+                      <button
+                        onClick={() => handleCopyCode("VOUCHER-5FOOD")}
+                        className="btn btn-sm btn-primary btn-outline w-full sm:w-auto shrink-0"
+                      >
+                        {copiedCode === "VOUCHER-5FOOD" ? "Copied!" : "Copy code"}
                       </button>
                     </div>
                   </div>
@@ -119,8 +266,11 @@ export function Wallet({ onTabChange }) {
                           <p className="font-mono text-sm font-bold text-muted-foreground mt-0.5">OAT-UPGRADE</p>
                         </div>
                       </div>
-                      <button className="btn btn-sm btn-accent btn-outline w-full sm:w-auto shrink-0">
-                        Copy code
+                      <button
+                        onClick={() => handleCopyCode("OAT-UPGRADE")}
+                        className="btn btn-sm btn-accent btn-outline w-full sm:w-auto shrink-0"
+                      >
+                        {copiedCode === "OAT-UPGRADE" ? "Copied!" : "Copy code"}
                       </button>
                     </div>
                   </div>
@@ -150,7 +300,12 @@ export function Wallet({ onTabChange }) {
                   <div className="flex-1 rounded-xl bg-input px-4 py-3 font-mono text-sm font-bold text-center text-foreground border border-border/50">
                     MAYA-REWARD-2024
                   </div>
-                  <button className="btn btn-primary w-full sm:w-auto">Share link</button>
+                  <button
+                    onClick={handleShare}
+                    className="btn btn-primary w-full sm:w-auto"
+                  >
+                    Share link
+                  </button>
                 </div>
               </div>
             </section>
@@ -159,25 +314,32 @@ export function Wallet({ onTabChange }) {
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold">Points history</h2>
-                <button className="btn btn-ghost btn-sm text-primary font-bold hover:bg-primary/10">Full history</button>
+                <button
+                  onClick={() => setShowFullHistory((current) => !current)}
+                  className="btn btn-ghost btn-sm text-primary font-bold hover:bg-primary/10"
+                >
+                  {showFullHistory ? "Show less" : "Full history"}
+                </button>
               </div>
               <div className="card bg-card border border-border shadow-sm overflow-hidden">
-                <div className="divide-y divide-border">
-                  {[
-                    { label: "Order #4492 – Harbor Coffee", date: "Jun 24, 2024 · Earned", pts: "+120 pts", positive: true },
-                    { label: "Redeemed Free Coffee Voucher", date: "Jun 22, 2024 · Spent",  pts: "-300 pts", positive: false },
-                    { label: "Double Points Weekend Bonus",  date: "Jun 18, 2024 · Bonus",  pts: "+250 pts", positive: true },
-                  ].map((entry) => (
-                    <div
-                      key={entry.label}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-5 hover:bg-muted/10 transition-colors cursor-pointer"
-                    >
-                      {/* Label + date */}
+              <div className="divide-y divide-border">
+              {pointsHistory
+                .slice(0, showFullHistory ? pointsHistory.length : 3)
+                .map((entry) => (
+                  <div
+                  key={entry.id}
+                  onClick={() => handleTransactionClick(entry)}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-5 hover:bg-muted/10 transition-colors cursor-pointer"
+                >
                       <div className="min-w-0 flex-1">
-                        <p className="text-base font-bold leading-snug">{entry.label}</p>
-                        <p className="text-sm text-muted-foreground mt-0.5">{entry.date}</p>
+                        <p className="text-base font-bold leading-snug">
+                          {entry.label}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {entry.date}
+                        </p>
                       </div>
-                      {/* Points badge — aligns right on sm+, left on mobile */}
+
                       <span
                         className={`self-start sm:self-center text-sm font-bold px-3 py-1.5 rounded-full shrink-0 ${
                           entry.positive
@@ -192,6 +354,48 @@ export function Wallet({ onTabChange }) {
                 </div>
               </div>
             </section>
+
+            {selectedTransaction && (
+  <div className="mt-4 card bg-primary/5 border border-primary/20 shadow-sm">
+    <div className="card-body p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-primary">
+            Transaction details
+          </p>
+
+          <h3 className="text-base font-bold mt-1">
+            {selectedTransaction.label}
+          </h3>
+
+          <p className="text-sm text-muted-foreground mt-1">
+            {selectedTransaction.date}
+          </p>
+        </div>
+
+        <button
+          onClick={() => setSelectedTransaction(null)}
+          className="btn btn-ghost btn-sm btn-circle"
+          aria-label="Close transaction details"
+        >
+          <Icon icon="solar:close-circle-outline" className="size-5" />
+        </button>
+      </div>
+
+      <div className="mt-4">
+        <span
+          className={`text-sm font-bold px-3 py-1.5 rounded-full ${
+            selectedTransaction.positive
+              ? "text-accent bg-accent/10"
+              : "text-primary bg-primary/10"
+          }`}
+        >
+          {selectedTransaction.pts}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
 
             {/* How to earn */}
             <section className="card bg-muted/30 border border-border shadow-sm">

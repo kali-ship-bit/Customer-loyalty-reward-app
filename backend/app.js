@@ -17,7 +17,7 @@ const rewardRoutes = require('./routes/rewardRoutes');
 const app = express();
 
 // middleware
-app.use(cors());
+app.use(cors({ origin: 'https://customer-loyalty-pink.vercel.app' }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

@@ -1,10 +1,16 @@
+
+
 const express = require('express');
+
 
 const authController = require('../controllers/authController');
 
 const protect = require('../middleware/authMiddleware');
 
 const authorize = require('../middleware/roleMiddleware');
+
+
+const upload = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -17,6 +23,8 @@ router.post('/verifyEmail', authController.verifyEmail);
 router.post('/resendVerificationCode', authController.resendVerificationCode);
 
 router.post('/loginUser', authController.loginUser);
+
+router.patch( "/uploadProfilePhoto", protect, upload.single("profilePhoto"), authController.uploadProfilePhoto);
 
 router.get('/getUser', protect, authController.getUser);
 

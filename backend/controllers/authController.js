@@ -4,6 +4,10 @@ const User = require('../models/usermodel');
 
 const generateToken = require('../utilities/generateToken')
 
+const cloudinary = require("../config/cloudinary");
+
+const streamifier = require("streamifier");
+
 const generateVerificationCode = require("../utilities/generateEmailCode");
 
 const sendVerificationEmail = require("../utilities/sendEmail");
@@ -357,7 +361,9 @@ exports.getUser = async (req, res) => {
                 phone: req.user.phone,
                 role: req.user.role,
                 pointsBalance: req.user.pointsBalance,
+                totalPointsEarned: req.user.totalPointsEarned,
                 isEmailVerified: req.user.isEmailVerified,
+                profilePhoto: req.user.profilePhoto,               
             },
         },
     });
@@ -631,6 +637,58 @@ exports.activateUser = async (req, res) => {
             success: false,
             message: 'Unable to activate user account',
             data: null
+        });
+    }
+};
+
+exports.uploadProfilePhoto = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Please select an image",
+                data: null,
+            });
+        }
+
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: "customer-loyalty/profile-photos",
+                resource_type: "image",
+            },
+            async (error, result) => {
+                if (error) {
+                    console.error("Cloudinary upload error:", error);
+
+                    return res.status(500).json({
+                        success: false,
+                        message: "Unable to upload profile photo",
+                        data: null,
+                    });
+                }
+
+                req.user.profilePhoto = result.secure_url;
+                await req.user.save();
+
+                return res.status(200).json({
+                    success: true,
+                    message: "Profile photo uploaded successfully",
+                    data: {
+                        profilePhoto: result.secure_url,
+                    },
+                });
+            }
+        );
+
+        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
+    } catch (error) {
+        console.error("Upload profile photo error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to upload profile photo",
+            data: null,
         });
     }
 };

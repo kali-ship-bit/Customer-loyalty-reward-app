@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
 const User = require('../models/usermodel');
 
 // Create Protect Middleware
@@ -20,7 +23,7 @@ const protect = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await User.findById(decoded.userId).select('firstName lastName email phone role pointsBalance isActive isEmailVerified +passwordChangedAt');
+        const user = await User.findById(decoded.userId).select('firstName lastName email phone role pointsBalance totalPointsEarned profilePhoto isActive isEmailVerified +passwordChangedAt');
 
         if (!user) {
             return res.status(401).json({
@@ -57,5 +60,6 @@ const protect = async (req, res, next) => {
         })
     }
 };
+
 
 module.exports = protect;

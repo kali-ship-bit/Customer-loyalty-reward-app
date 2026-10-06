@@ -88,6 +88,7 @@ exports.createPurchase = async (req, res) => {
         const totalPrice = product.price * quantity;
         const pointsEarned = product.points * quantity;
 
+
         // Create the purchase
 
         const purchase = new Purchase({
@@ -108,7 +109,13 @@ exports.createPurchase = async (req, res) => {
         }
 
         // Add new points to the user's points balance
+        if (user.totalPointsEarned === undefined || user.totalPointsEarned === null) {
+            user.totalPointsEarned = 0;
+        }
+
+        // Add new points to the user's points balance
         user.pointsBalance += pointsEarned;
+        user.totalPointsEarned += pointsEarned;
 
         // Record points transaction
         const point = new Point({
@@ -129,7 +136,7 @@ exports.createPurchase = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: 'Purchase created successfully',
-            data: {purchase, point, pointsBalance: user.pointsBalance, quantity: product.quantity}
+            data: {purchase, point, pointsBalance: user.pointsBalance, totalPointsEarned: user.totalPointsEarned, quantity: product.quantity}
         });
     } catch (error) {
         await session.abortTransaction();

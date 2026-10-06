@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema(
         trim: true,
     },
 
+    profilePhoto: {
+      type: String,
+      default: "",
+    },
+
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -72,6 +77,19 @@ const userSchema = new mongoose.Schema(
     },
 
     pointsBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    favoriteProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+    },
+],
+
+    totalPointsEarned: {
       type: Number,
       default: 0,
       min: 0,

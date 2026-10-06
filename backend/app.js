@@ -12,6 +12,7 @@ const productRoutes = require("./routes/productRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const pointRoutes = require('./routes/pointRoutes');
 const rewardRoutes = require('./routes/rewardRoutes');
+const favoriteRoutes = require("./routes/favoriteRoutes");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/favorites", favoriteRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use('/api/points', pointRoutes);
 app.use('/api/rewards', rewardRoutes);

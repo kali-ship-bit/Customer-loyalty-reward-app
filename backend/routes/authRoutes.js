@@ -24,6 +24,10 @@ router.post('/resendVerificationCode', authController.resendVerificationCode);
 
 router.post('/loginUser', authController.loginUser);
 
+router.post('/forgotPassword', authController.forgotPassword);
+
+router.post('/resetPassword', authController.resetPassword);
+
 router.patch( "/uploadProfilePhoto", protect, upload.single("profilePhoto"), authController.uploadProfilePhoto);
 
 router.get('/getUser', protect, authController.getUser);

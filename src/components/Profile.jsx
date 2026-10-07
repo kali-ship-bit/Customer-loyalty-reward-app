@@ -166,12 +166,10 @@ export function Profile() {
 
       <div className="px-5 md:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-
           {/* Profile Card */}
           <section className="card bg-card border border-border shadow-sm">
             <div className="card-body p-8">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-
                 {/* Profile Photo */}
                 <div className="size-24 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   {profile?.profilePhoto ? (
@@ -189,9 +187,7 @@ export function Profile() {
 
                 {/* Profile Information */}
                 <div>
-                  <h2 className="text-2xl font-bold">
-                    {fullName}
-                  </h2>
+                  <h2 className="text-2xl font-bold">{fullName}</h2>
 
                   <p className="text-muted-foreground mt-1">
                     {profile?.email || "—"}
@@ -199,14 +195,9 @@ export function Profile() {
 
                   {/* Change Profile Photo */}
                   <label className="btn btn-dark btn-sm cursor-pointer mt-3 text-white">
-                    <Icon
-                      icon="solar:camera-outline"
-                      className="size-4"
-                    />
+                    <Icon icon="solar:camera-outline" className="size-4" />
 
-                    {uploadingPhoto
-                      ? "Uploading..."
-                      : "Change Photo"}
+                    {uploadingPhoto ? "Uploading..." : "Change Photo"}
 
                     <input
                       type="file"
@@ -236,20 +227,14 @@ export function Profile() {
 
           {/* Account Overview */}
           <section>
-            <h2 className="text-xl font-bold mb-4">
-              Account Overview
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Account Overview</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
               {/* Current Points */}
               <div className="card bg-card border border-border shadow-sm">
                 <div className="card-body p-6">
                   <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                    <Icon
-                      icon="solar:star-outline"
-                      className="size-5"
-                    />
+                    <Icon icon="solar:star-outline" className="size-5" />
                   </div>
 
                   <p className="text-sm text-muted-foreground">
@@ -266,10 +251,7 @@ export function Profile() {
               <div className="card bg-card border border-border shadow-sm">
                 <div className="card-body p-6">
                   <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                    <Icon
-                      icon="solar:gift-outline"
-                      className="size-5"
-                    />
+                    <Icon icon="solar:gift-outline" className="size-5" />
                   </div>
 
                   <p className="text-sm text-muted-foreground">
@@ -286,41 +268,85 @@ export function Profile() {
               <div className="card bg-card border border-border shadow-sm">
                 <div className="card-body p-6">
                   <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                    <Icon
-                      icon="solar:phone-outline"
-                      className="size-5"
-                    />
+                    <Icon icon="solar:phone-outline" className="size-5" />
                   </div>
 
-                  <p className="text-sm text-muted-foreground">
-                    Phone
-                  </p>
+                  <p className="text-sm text-muted-foreground">Phone</p>
 
                   <p className="text-lg font-bold mt-2 break-words">
                     {profile?.phone || "Not provided"}
                   </p>
                 </div>
               </div>
+            </div>
+          </section>
 
+          {/* Referral */}
+          <section className="card bg-card border border-border shadow-sm">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon
+                    icon="solar:users-group-rounded-outline"
+                    className="size-5"
+                  />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold">Refer a Friend</h2>
+
+                  <p className="text-sm text-muted-foreground">
+                    Share your referral code with friends.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      Your Referral Code
+                    </span>
+                  </label>
+
+                  <input
+                    type="text"
+                    value={profile?.referralCode || ""}
+                    readOnly
+                    className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300 font-bold tracking-wider"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        profile?.referralCode || "",
+                      );
+                      setMessage("Referral code copied successfully.");
+                    }}
+                    className="btn btn-dark text-white w-full sm:w-auto"
+                    disabled={!profile?.referralCode}
+                  >
+                    <Icon icon="solar:copy-outline" className="size-5" />
+                    Copy Code
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
 
           {/* Edit Personal Information */}
           <section className="card bg-card border border-border shadow-sm">
             <div className="card-body p-6">
-
               <div className="flex items-center gap-3 mb-6">
                 <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <Icon
-                    icon="solar:user-id-outline"
-                    className="size-5"
-                  />
+                  <Icon icon="solar:user-id-outline" className="size-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold">
-                    Personal Information
-                  </h2>
+                  <h2 className="text-lg font-bold">Personal Information</h2>
 
                   <p className="text-sm text-muted-foreground">
                     Update your account details
@@ -329,9 +355,7 @@ export function Profile() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                   {/* First Name */}
                   <div>
                     <label className="label">
@@ -369,15 +393,12 @@ export function Profile() {
                       disabled={saving}
                     />
                   </div>
-
                 </div>
 
                 {/* Email */}
                 <div>
                   <label className="label">
-                    <span className="label-text font-semibold">
-                      Email
-                    </span>
+                    <span className="label-text font-semibold">Email</span>
                   </label>
 
                   <input
@@ -446,15 +467,11 @@ export function Profile() {
                     </>
                   ) : (
                     <>
-                      <Icon
-                        icon="solar:diskette-outline"
-                        className="size-5"
-                      />
+                      <Icon icon="solar:diskette-outline" className="size-5" />
                       Save Changes
                     </>
                   )}
                 </button>
-
               </form>
             </div>
           </section>
@@ -462,19 +479,13 @@ export function Profile() {
           {/* Security */}
           <section className="card bg-card border border-border shadow-sm">
             <div className="card-body p-6">
-
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <Icon
-                    icon="solar:shield-check-outline"
-                    className="size-5"
-                  />
+                  <Icon icon="solar:shield-check-outline" className="size-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold">
-                    Security
-                  </h2>
+                  <h2 className="text-lg font-bold">Security</h2>
 
                   <p className="text-sm text-muted-foreground">
                     Manage your account security
@@ -487,13 +498,9 @@ export function Profile() {
                 onClick={() => navigate("/profile/privacy-security")}
                 className="btn btn-dark btn-sm cursor-pointer mt-3 text-white"
               >
-                <Icon
-                  icon="solar:lock-keyhole-outline"
-                  className="size-5"
-                />
+                <Icon icon="solar:lock-keyhole-outline" className="size-5" />
                 Privacy & Security
               </button>
-
             </div>
           </section>
 
@@ -504,14 +511,10 @@ export function Profile() {
               onClick={handleSignOut}
               className="btn btn-error btn-outline w-full sm:w-auto px-10 rounded-xl font-bold"
             >
-              <Icon
-                icon="solar:logout-2-outline"
-                className="size-5"
-              />
+              <Icon icon="solar:logout-2-outline" className="size-5" />
               Log Out
             </button>
           </section>
-
         </div>
       </div>
 

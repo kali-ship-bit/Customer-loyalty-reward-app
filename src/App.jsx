@@ -12,6 +12,7 @@ import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
 import { VerifyEmail } from "./components/auth/verifyEmail";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import ForgotPassword from "./components/auth/ForgotPassword";
 
 import { PersonalInformation } from "./components/settings/PersonalInformation";
 import { PaymentMethods } from "./components/settings/PaymentMethods";
@@ -40,6 +41,8 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/verify-email" element={<VerifyEmail />} />  
+
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route element={<ProtectedRoute />}>
         <Route

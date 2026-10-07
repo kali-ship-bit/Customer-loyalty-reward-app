@@ -26,6 +26,10 @@ router.get( "/getAllRedemptionHistory", protect, authorize("ADMIN"), rewardContr
 
 router.patch("/deactivateReward/:id", protect, authorize("ADMIN"), rewardController.deactivateReward);
 
-router.patch( "/reactivateReward/:id", protect, authorize("ADMIN"), rewardController.reactivateReward);
+router.patch("/reactivateReward/:id", protect, authorize("ADMIN"), rewardController.reactivateReward);
+
+router.patch("/toggleFeatured/:id", protect, authorize("ADMIN"), rewardController.toggleFeaturedReward);
+
+router.get("/featured", protect, authorize("USER"), rewardController.getFeaturedRewards);
 
 module.exports = router;

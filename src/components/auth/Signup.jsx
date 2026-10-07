@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +13,11 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const [referralCode, setReferralCode] = useState(
+  searchParams.get("ref")?.toUpperCase() || "",
+  );
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -33,6 +39,7 @@ export function Signup() {
       email,
       phone,
       password,
+      referralCode,
     });
 
     setSubmitting(false);
@@ -70,10 +77,7 @@ export function Signup() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* First Name */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="firstName"
-            >
+            <label className="text-sm font-semibold" htmlFor="firstName">
               First name
             </label>
 
@@ -90,10 +94,7 @@ export function Signup() {
 
           {/* Last Name */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="lastName"
-            >
+            <label className="text-sm font-semibold" htmlFor="lastName">
               Last name
             </label>
 
@@ -110,10 +111,7 @@ export function Signup() {
 
           {/* Email */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="email"
-            >
+            <label className="text-sm font-semibold" htmlFor="email">
               Email
             </label>
 
@@ -130,10 +128,7 @@ export function Signup() {
 
           {/* Phone */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="phone"
-            >
+            <label className="text-sm font-semibold" htmlFor="phone">
               Phone number
             </label>
 
@@ -150,10 +145,7 @@ export function Signup() {
 
           {/* Password */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="password"
-            >
+            <label className="text-sm font-semibold" htmlFor="password">
               Password
             </label>
 
@@ -166,6 +158,28 @@ export function Signup() {
               className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
               placeholder="At least 6 characters"
             />
+          </div>
+
+          {/* Referral Code */}
+          <div>
+            <label className="text-sm font-semibold" htmlFor="referralCode">
+              Referral code{" "}
+              <span className="text-muted-foreground">(optional)</span>
+            </label>
+
+            <input
+              id="referralCode"
+              type="text"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+              className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl uppercase tracking-wider"
+              placeholder="Enter referral code"
+              maxLength={6}
+            />
+
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Have a referral code? Enter it here.
+            </p>
           </div>
 
           {error && (
@@ -185,10 +199,7 @@ export function Signup() {
 
         <p className="text-sm text-center text-muted-foreground mt-6">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-bold text-primary hover:underline"
-          >
+          <Link to="/login" className="font-bold text-primary hover:underline">
             Sign in
           </Link>
         </p>

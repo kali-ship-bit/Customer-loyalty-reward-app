@@ -23,7 +23,7 @@ const protect = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await User.findById(decoded.userId).select('firstName lastName email phone role pointsBalance totalPointsEarned profilePhoto isActive isEmailVerified +passwordChangedAt');
+        const user = await User.findById(decoded.userId).select('firstName lastName email phone role pointsBalance totalPointsEarned profilePhoto isActive isEmailVerified referralCode +passwordChangedAt');
 
         if (!user) {
             return res.status(401).json({

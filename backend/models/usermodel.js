@@ -23,10 +23,10 @@ const userSchema = new mongoose.Schema(
     },
 
     phone: {
-        type: String,
-        required: [true, "Phone number is required"],
-        unique: true,
-        trim: true,
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      trim: true,
     },
 
     profilePhoto: {
@@ -43,6 +43,16 @@ const userSchema = new mongoose.Schema(
 
     passwordChangedAt: {
       type: Date,
+    },
+
+    passwordResetCode: {
+      type: String,
+      select: false,
+    },
+
+    passwordResetExpires: {
+      type: Date,
+      select: false,
     },
 
     role: {
@@ -86,18 +96,60 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
-    },
-],
+      },
+    ],
 
     totalPointsEarned: {
       type: Number,
       default: 0,
       min: 0,
     },
+
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    referralRewardReceived: {
+      type: Boolean,
+      default: false,
+  },
   },
   {
     timestamps: true,
-  }
+  },
+
+
 );
+
+userSchema.pre("save", async function () {
+  if (!this.isNew || this.referralCode) {
+    return;
+  }
+
+  let code;
+  let existingUser;
+
+  do {
+    code = Math.random()
+      .toString(36)
+      .substring(2, 8)
+      .toUpperCase();
+
+    existingUser = await mongoose.models.User.findOne({
+      referralCode: code,
+    });
+  } while (existingUser);
+
+  this.referralCode = code;
+});
 
 module.exports = mongoose.model("User", userSchema);

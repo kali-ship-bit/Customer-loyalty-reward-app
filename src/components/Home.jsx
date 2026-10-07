@@ -32,6 +32,7 @@ export function Home() {
   const {
     profile,
     rewards,
+    featuredRewards,
     pointsHistory,
     purchases,
     redemptions,
@@ -54,7 +55,39 @@ export function Home() {
     : Math.min(
         Math.round((totalPointsEarned / nextGoal) * 100),
         100
-      );
+    );
+ const handleInviteFriend = async () => {
+   const referralCode = profile?.referralCode;
+
+   if (!referralCode) {
+     return;
+   }
+
+   const signupUrl = `${window.location.origin}/signup?ref=${referralCode}`;
+
+   const shareData = {
+     title: "Join Customer Loyalty App",
+     text: "Join me on Customer Loyalty App and start earning loyalty points.",
+     url: signupUrl,
+   };
+
+   try {
+     if (navigator.share) {
+       await navigator.share(shareData);
+       return;
+     }
+
+     await navigator.clipboard.writeText(signupUrl);
+
+     alert(
+       "Your referral link has been copied. You can now paste it into WhatsApp or any messaging app.",
+     );
+   } catch (error) {
+     if (error.name !== "AbortError") {
+       console.error("Unable to share referral link:", error);
+     }
+   }
+ };
 
   /*
    * Recent activity is built from:
@@ -91,17 +124,16 @@ export function Home() {
       new Date(a.created_at).getTime()
   );
 
-  const availableRewards = rewards
-    .filter(
-      (reward) =>
-        reward.isAvailable && reward.quantity > 0
-    )
-    .slice(0, 3);
+const availableRewards = rewards
+  .filter(
+    (reward) => reward.isAvailable && reward.quantity > 0
+      // && !reward.featured,
+  )
+  .slice(0, 3);
 
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
       <div className="px-5 md:px-8 pt-6 pb-8 space-y-8">
-
         {/* PROFILE BANNER */}
         <section className="relative overflow-hidden rounded-[2rem] bg-primary p-6 md:p-8 text-primary-foreground shadow-sm">
           <div className="absolute -right-16 -top-16 size-48 rounded-full bg-white/10" />
@@ -109,7 +141,6 @@ export function Home() {
 
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-
               {/* Profile */}
               <div className="flex items-center gap-4">
                 <div className="size-16 md:size-20 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0 border-2 border-white/30">
@@ -137,14 +168,9 @@ export function Home() {
                   </h1>
 
                   <div className="flex items-center gap-2 mt-2">
-                    <Icon
-                      icon="solar:crown-star-bold"
-                      className="size-4"
-                    />
+                    <Icon icon="solar:crown-star-bold" className="size-4" />
 
-                    <span className="text-sm font-medium">
-                      {tier} Member
-                    </span>
+                    <span className="text-sm font-medium">{tier} Member</span>
                   </div>
                 </div>
               </div>
@@ -174,9 +200,7 @@ export function Home() {
                     : `${toNextTier.toLocaleString()} points to Platinum`}
                 </p>
 
-                <span className="text-sm font-semibold">
-                  {progressPct}%
-                </span>
+                <span className="text-sm font-semibold">{progressPct}%</span>
               </div>
 
               <div className="h-2 w-full max-w-xl rounded-full bg-white/20 overflow-hidden">
@@ -187,13 +211,9 @@ export function Home() {
               </div>
 
               <div className="flex justify-between max-w-xl mt-2 text-xs text-primary-foreground/60">
-                <span>
-                  {totalPointsEarned.toLocaleString()} earned
-                </span>
+                <span>{totalPointsEarned.toLocaleString()} earned</span>
 
-                <span>
-                  {nextGoal.toLocaleString()} pts
-                </span>
+                <span>{nextGoal.toLocaleString()} pts</span>
               </div>
             </div>
           </div>
@@ -202,9 +222,7 @@ export function Home() {
         {/* QUICK ACTIONS */}
         <section>
           <div className="mb-4">
-            <h2 className="text-xl font-bold">
-              Quick Actions
-            </h2>
+            <h2 className="text-xl font-bold">Quick Actions</h2>
 
             <p className="text-sm text-muted-foreground mt-1">
               Manage your loyalty account.
@@ -212,12 +230,11 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-
             {/* Shop */}
             <button
               type="button"
               onClick={() => navigate("/products")}
-              className="text-left rounded-2xl border border-border bg-card p-6 shadow-sm hover:border-primary/40 transition"
+              className="text-left rounded-2xl border border-border bg-card p-6 shadow-sm hover:border-primary/40 hover:scale-[1.02] hover:shadow-md transition-all duration-200 cursor-pointer"
             >
               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Icon
@@ -226,9 +243,7 @@ export function Home() {
                 />
               </div>
 
-              <h3 className="font-bold text-lg">
-                Shop Products
-              </h3>
+              <h3 className="font-bold text-lg">Shop Products</h3>
 
               <p className="text-sm text-muted-foreground mt-2">
                 Browse products and earn points from your purchases.
@@ -243,7 +258,7 @@ export function Home() {
             <button
               type="button"
               onClick={() => navigate("/rewards")}
-              className="text-left rounded-2xl border border-border bg-card p-6 shadow-sm hover:border-primary/40 transition"
+              className="text-left rounded-2xl border border-border bg-card p-6 shadow-sm hover:border-primary/40 hover:scale-[1.02] hover:shadow-md transition-all duration-200 cursor-pointer"
             >
               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Icon
@@ -252,9 +267,7 @@ export function Home() {
                 />
               </div>
 
-              <h3 className="font-bold text-lg">
-                Redeem Rewards
-              </h3>
+              <h3 className="font-bold text-lg">Redeem Rewards</h3>
 
               <p className="text-sm text-muted-foreground mt-2">
                 Use your points to redeem available rewards.
@@ -274,36 +287,106 @@ export function Home() {
                 />
               </div>
 
-              <h3 className="font-bold text-lg">
-                Invite a Friend
-              </h3>
+              <h3 className="font-bold text-lg">Invite a Friend</h3>
 
               <p className="text-sm text-muted-foreground mt-2">
-                Share the loyalty program with your friends and
-                enjoy more benefits together.
+                Share the loyalty program with your friends and enjoy more
+                benefits together.
               </p>
 
               <button
                 type="button"
-                className="btn btn-dark mt-4 text-white"
-                disabled
+                onClick={handleInviteFriend}
+                className="btn btn-dark mt-4 text-white cursor-pointer"
+                disabled={!profile?.referralCode}
               >
+                <Icon icon="solar:share-outline" className="size-5" />
                 Invite Friend
               </button>
 
               <p className="text-xs text-muted-foreground mt-2">
-                Referral rewards coming soon.
+                Referral and earn points.
               </p>
             </div>
           </div>
         </section>
 
+        {/* FEATURED REWARDS */}
+        <section>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">Featured Rewards</h2>
+
+            <p className="text-sm text-muted-foreground mt-1">
+              Popular rewards you can redeem with your points.
+            </p>
+          </div>
+
+          {featuredRewards.length === 0 ? (
+            <div className="rounded-2xl border border-primary/20 bg-card p-6 shadow-sm hover:scale-[1.02] hover:shadow-md transition-all duration-200">
+              <Icon
+                icon="solar:star-outline"
+                className="size-12 mx-auto text-muted-foreground mb-3"
+              />
+
+              <h3 className="font-semibold">No featured rewards</h3>
+
+              <p className="text-sm text-muted-foreground mt-1">
+                Check back later for featured rewards.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {featuredRewards.slice(0, 3).map((reward) => (
+                <div
+                  key={reward._id}
+                  className="rounded-2xl border border-primary/20 bg-card p-6 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Icon
+                        icon="solar:star-bold"
+                        className="size-6 text-primary"
+                      />
+                    </div>
+
+                    <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                      Featured
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-lg">{reward.name}</h3>
+
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                    {reward.description}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-5">
+                    <span className="font-bold text-primary">
+                      {reward.pointsRequired.toLocaleString()} pts
+                    </span>
+
+                    <span className="text-xs text-muted-foreground">
+                      {reward.quantity} available
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/rewards")}
+                    className="btn btn-dark text-white w-full mt-5"
+                  >
+                    View Reward
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* AVAILABLE REWARDS */}
         <section>
           <div className="mb-4">
-            <h2 className="text-xl font-bold">
-              Available Rewards
-            </h2>
+            <h2 className="text-xl font-bold">Available Rewards</h2>
 
             <p className="text-sm text-muted-foreground mt-1">
               Rewards you can redeem with your points.
@@ -311,15 +394,13 @@ export function Home() {
           </div>
 
           {availableRewards.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm hover:scale-[1.02] hover:shadow-md transition-all duration-200">
               <Icon
                 icon="solar:cup-star-outline"
                 className="size-12 mx-auto text-muted-foreground mb-3"
               />
 
-              <h3 className="font-semibold">
-                No rewards available
-              </h3>
+              <h3 className="font-semibold">No rewards available</h3>
 
               <p className="text-sm text-muted-foreground mt-1">
                 Check back later for new rewards.
@@ -339,9 +420,7 @@ export function Home() {
                     />
                   </div>
 
-                  <h3 className="font-bold text-lg">
-                    {reward.name}
-                  </h3>
+                  <h3 className="font-bold text-lg">{reward.name}</h3>
 
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                     {reward.description}
@@ -365,9 +444,7 @@ export function Home() {
         {/* RECENT ACTIVITY */}
         <section>
           <div className="mb-4">
-            <h2 className="text-xl font-bold">
-              Recent Activity
-            </h2>
+            <h2 className="text-xl font-bold">Recent Activity</h2>
 
             <p className="text-sm text-muted-foreground mt-1">
               Your latest loyalty activity.
@@ -382,13 +459,10 @@ export function Home() {
                   className="size-12 mx-auto text-muted-foreground mb-3"
                 />
 
-                <h3 className="font-semibold">
-                  No recent activity
-                </h3>
+                <h3 className="font-semibold">No recent activity</h3>
 
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your purchases and points activity will appear
-                  here.
+                  Your purchases and points activity will appear here.
                 </p>
               </div>
             ) : (
@@ -415,9 +489,7 @@ export function Home() {
                       </div>
 
                       <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {item.title}
-                        </p>
+                        <p className="font-medium truncate">{item.title}</p>
 
                         <p className="text-xs text-muted-foreground mt-1">
                           {timeAgo(item.created_at)}
@@ -454,9 +526,7 @@ export function Home() {
               </div>
 
               <div>
-                <h2 className="font-bold text-lg">
-                  Your Points Wallet
-                </h2>
+                <h2 className="font-bold text-lg">Your Points Wallet</h2>
 
                 <p className="text-sm text-muted-foreground mt-1">
                   You currently have{" "}

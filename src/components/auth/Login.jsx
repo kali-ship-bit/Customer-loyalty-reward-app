@@ -10,6 +10,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,17 +49,28 @@ export function Login() {
               placeholder="you@example.com"
             />
           </div>
-          <div>
-            <label className="text-sm font-semibold" htmlFor="password">Password</label>
+          <div className="relative mt-1.5">
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
+              className="input input-bordered w-full bg-input border-transparent focus:border-primary rounded-xl pr-12"
               placeholder="••••••••"
             />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              <Icon
+                icon={showPassword ? "solar:eye-linear" : "solar:eye-closed-linear"}
+                className="size-5"
+              />
+            </button>
           </div>
 
           {error && (
@@ -75,6 +87,14 @@ export function Login() {
             {submitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={() => navigate("/forgot-password")}
+          className="text-sm text-primary hover:underline"
+        >
+          Forgot password?
+        </button>
 
         <p className="text-sm text-center text-muted-foreground mt-6">
           Don't have an account?{" "}

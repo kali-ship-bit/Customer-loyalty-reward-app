@@ -16,6 +16,7 @@ export function AppDataProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [products, setProducts] = useState([]);
   const [rewards, setRewards] = useState([]);
+  const [featuredRewards, setFeaturedRewards] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [pointsHistory, setPointsHistory] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
@@ -54,6 +55,18 @@ export function AppDataProvider({ children }) {
       setRewards(result.data?.rewards || []);
     } catch (error) {
       console.error("Failed to load rewards:", error);
+    }
+  }, [user]);
+
+  // Get featured rewards
+  const refreshFeaturedRewards = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const result = await apiClient("/rewards/featured");
+      setFeaturedRewards(result.data?.rewards || []);
+    } catch (error) {
+      console.error("Failed to load featured rewards:", error);
     }
   }, [user]);
 
@@ -112,6 +125,7 @@ export function AppDataProvider({ children }) {
       setProfile(null);
       setProducts([]);
       setRewards([]);
+      setFeaturedRewards([]);
       setPurchases([]);
       setPointsHistory([]);
       setRedemptions([]);
@@ -126,6 +140,7 @@ export function AppDataProvider({ children }) {
         refreshProfile(),
         refreshProducts(),
         refreshRewards(),
+        refreshFeaturedRewards(),
         refreshPurchases(),
         refreshPointsHistory(),
         refreshRedemptions(),
@@ -141,6 +156,7 @@ export function AppDataProvider({ children }) {
     refreshProfile,
     refreshProducts,
     refreshRewards,
+    refreshFeaturedRewards,
     refreshPurchases,
     refreshPointsHistory,
     refreshRedemptions,
@@ -178,12 +194,7 @@ export function AppDataProvider({ children }) {
         };
       }
     },
-    [
-      refreshProfile,
-      refreshProducts,
-      refreshPurchases,
-      refreshPointsHistory,
-    ]
+    [refreshProfile, refreshProducts, refreshPurchases, refreshPointsHistory],
   );
 
   // Redeem a reward
@@ -201,6 +212,7 @@ export function AppDataProvider({ children }) {
         await Promise.all([
           refreshProfile(),
           refreshRewards(),
+          refreshFeaturedRewards(),
           refreshPointsHistory(),
           refreshRedemptions(),
         ]);
@@ -219,12 +231,13 @@ export function AppDataProvider({ children }) {
     [
       refreshProfile,
       refreshRewards,
+      refreshFeaturedRewards,
       refreshPointsHistory,
       refreshRedemptions,
-    ]
+    ],
   );
 
-    // Add product to favourites
+  // Add product to favourites
   const addFavorite = useCallback(
     async (productId) => {
       try {
@@ -245,7 +258,7 @@ export function AppDataProvider({ children }) {
         };
       }
     },
-    [refreshFavorites]
+    [refreshFavorites],
   );
 
   // Remove product from favourites
@@ -269,47 +282,43 @@ export function AppDataProvider({ children }) {
         };
       }
     },
-    [refreshFavorites]
+    [refreshFavorites],
   );
 
   const isFavorite = useCallback(
     (productId) => {
-      return favorites.some(
-        (product) => product._id === productId
-      );
+      return favorites.some((product) => product._id === productId);
     },
-    [favorites]
+    [favorites],
   );
 
   // Update profile
-  const updateProfile = useCallback(
-    async (fields) => {
-      try {
-        const result = await apiClient("/auth/updateUser", {
-          method: "PATCH",
-          body: JSON.stringify(fields),
-        });
+  const updateProfile = useCallback(async (fields) => {
+    try {
+      const result = await apiClient("/auth/updateUser", {
+        method: "PATCH",
+        body: JSON.stringify(fields),
+      });
 
-        setProfile(result.data.user);
+      setProfile(result.data.user);
 
-        return {
-          data: result.data,
-          error: null,
-        };
-      } catch (error) {
-        return {
-          data: null,
-          error,
-        };
-      }
-    },
-    []
-  );
+      return {
+        data: result.data,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error,
+      };
+    }
+  }, []);
 
   const value = {
     profile,
     products,
     rewards,
+    featuredRewards,
     purchases,
     pointsHistory,
     redemptions,
@@ -320,6 +329,7 @@ export function AppDataProvider({ children }) {
     refreshProfile,
     refreshProducts,
     refreshRewards,
+    refreshFeaturedRewards,
     refreshPurchases,
     refreshPointsHistory,
     refreshRedemptions,
@@ -373,9 +383,7 @@ export function AppDataProvider({ children }) {
   };
 
   return (
-    <AppDataContext.Provider value={value}>
-      {children}
-    </AppDataContext.Provider>
+    <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
   );
 }
 

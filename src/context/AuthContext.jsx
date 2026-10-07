@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
     email,
     phone,
     password,
+    referralCode,
   }) => {
     try {
       const response = await fetch(`${API_URL}/auth/createUser`, {
@@ -63,6 +64,7 @@ export function AuthProvider({ children }) {
           email,
           phone,
           password,
+          referralCode,
         }),
       });
 

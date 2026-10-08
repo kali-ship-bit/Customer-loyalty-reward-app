@@ -1,110 +1,337 @@
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileNav } from "./Sidebar";
-import { Avatar, AVATAR_ICON_OPTIONS } from "./Avatar";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
-const ACCOUNT_SETTINGS = [
-  { icon: "solar:user-id-outline", label: "Personal Information", sub: "Update your name and view account details", to: "/profile/personal-information" },
-  { icon: "solar:card-outline", label: "Payment Methods", sub: "Manage your saved cards and billing", to: "/profile/payment-methods" },
-  { icon: "solar:bell-bing-outline", label: "Notifications", sub: "Choose what updates you want to receive", to: "/profile/notifications" },
-];
-
-const SUPPORT_SETTINGS = [
-  { icon: "solar:question-circle-outline", label: "Help & Support", sub: "Get help with your account or orders", to: "/profile/help-support" },
-  { icon: "solar:shield-warning-outline", label: "Privacy & Security", sub: "Manage your data and security settings", to: "/profile/privacy-security" },
-];
-
 export function Profile() {
   const navigate = useNavigate();
-  const { profile, redemptions, updateProfile, uploadAvatar } = useAppData();
+  const { profile, redemptions, updateProfile } = useAppData();
   const { signOut } = useAuth();
-  const settingsSectionRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState("");
 
-  const handleSignOut = async () => {
-    await signOut();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
+        phone: profile.phone || "",
+      });
+    }
+  }, [profile]);
+
+  const handleProfilePhotoUpload = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setMessage("");
+    setError("");
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be 5MB or smaller.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("You are not logged in.");
+      }
+
+      const uploadData = new FormData();
+      uploadData.append("profilePhoto", file);
+
+      const response = await fetch(
+        `${API_URL}/auth/uploadProfilePhoto`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: uploadData,
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Failed to upload profile photo."
+        );
+      }
+
+      setMessage("Profile photo updated successfully.");
+
+      // Reload the page so the new Cloudinary image is displayed.
+      window.location.reload();
+    } catch (uploadError) {
+      setError(
+        uploadError.message || "Failed to upload profile photo."
+      );
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    signOut();
     navigate("/login", { replace: true });
   };
 
-  const handlePickIcon = async (iconId) => {
-    setShowAvatarPicker(false);
-    setAvatarError("");
-    const { error } = await updateProfile({ avatar_icon: iconId });
-    if (error) setAvatarError(error.message);
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
   };
 
-  const handleFileSelected = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow picking the same file again later
-    if (!file) return;
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    setAvatarError("");
+    setMessage("");
+    setError("");
 
-    if (!["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type)) {
-      setAvatarError("Please choose a JPG, PNG, or WEBP image.");
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setAvatarError("Image must be smaller than 2MB.");
+    if (!formData.firstName.trim()) {
+      setError("First name is required.");
       return;
     }
 
-    setShowAvatarPicker(false);
-    setUploading(true);
-    const { error } = await uploadAvatar(file);
-    setUploading(false);
-    if (error) setAvatarError(error.message);
+    if (!formData.lastName.trim()) {
+      setError("Last name is required.");
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+
+    setSaving(true);
+
+    const { error: updateError } = await updateProfile({
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      phone: formData.phone.trim(),
+    });
+
+    setSaving(false);
+
+    if (updateError) {
+      setError(updateError.message || "Failed to update profile.");
+      return;
+    }
+
+    setMessage("Profile updated successfully.");
   };
 
-  const memberSinceYear = profile?.member_since ? new Date(profile.member_since).getFullYear() : "—";
+  const fullName = profile
+    ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim()
+    : "—";
+
+  const points = profile?.pointsBalance ?? 0;
 
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl px-5 md:px-8 pt-6 pb-4 border-b border-border/40">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Profile</h1>
-          <button
-            type="button"
-            onClick={() => settingsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="btn btn-circle btn-ghost btn-md bg-card border border-border shadow-sm text-muted-foreground hover:text-foreground"
-            aria-label="Jump to account settings"
-          >
-            <Icon icon="solar:settings-outline" className="size-6" />
-          </button>
-        </div>
+      <header className="px-5 md:px-8 pt-6 pb-6 border-b border-border/40">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          Profile
+        </h1>
+
+        <p className="text-muted-foreground mt-2">
+          Manage your account information.
+        </p>
       </header>
 
-      <div className="px-5 md:px-8 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-
-          {/* ── Left: Avatar + Stats ── */}
-          <div className="lg:col-span-4 space-y-8 lg:space-y-12">
-            <section className="card bg-card border border-border shadow-md">
-              <div className="card-body p-8 flex flex-col items-center text-center">
-                <div className="relative mb-6">
-                  {uploading ? (
-                    <div className="size-32 rounded-full ring-4 ring-primary/20 ring-offset-4 shadow-md flex items-center justify-center bg-input">
-                      <Icon icon="solar:crown-star-bold" className="size-8 text-primary animate-pulse" />
-                    </div>
+      <div className="px-5 md:px-8 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Profile Card */}
+          <section className="card bg-card border border-border shadow-sm">
+            <div className="card-body p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                {/* Profile Photo */}
+                <div className="size-24 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  {profile?.profilePhoto ? (
+                    <img
+                      src={profile.profilePhoto}
+                      alt={`${profile?.firstName || "User"} profile`}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <Avatar profile={profile} className="size-32 ring-4 ring-primary/20 ring-offset-4 shadow-md" />
+                    <span className="text-3xl font-bold">
+                      {profile?.firstName?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
                   )}
+                </div>
 
+                {/* Profile Information */}
+                <div>
+                  <h2 className="text-2xl font-bold">{fullName}</h2>
+
+                  <p className="text-muted-foreground mt-1">
+                    {profile?.email || "—"}
+                  </p>
+
+                  {/* Change Profile Photo */}
+                  <label className="btn btn-dark btn-sm cursor-pointer mt-3 text-white">
+                    <Icon icon="solar:camera-outline" className="size-4" />
+
+                    {uploadingPhoto ? "Uploading..." : "Change Photo"}
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleProfilePhotoUpload}
+                      disabled={uploadingPhoto}
+                    />
+                  </label>
+
+                  {/* Account Badges */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <span className="badge badge-lg bg-primary/10 text-primary border-none font-semibold">
+                      {profile?.role || "USER"}
+                    </span>
+
+                    {profile?.isEmailVerified && (
+                      <span className="badge badge-lg bg-green-500/10 text-green-600 border-none font-semibold">
+                        Email Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Account Overview */}
+          <section>
+            <h2 className="text-xl font-bold mb-4">Account Overview</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Current Points */}
+              <div className="card bg-card border border-border shadow-sm">
+                <div className="card-body p-6">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <Icon icon="solar:star-outline" className="size-5" />
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    Current Points
+                  </p>
+
+                  <p className="text-3xl font-bold mt-1">
+                    {points.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Rewards Redeemed */}
+              <div className="card bg-card border border-border shadow-sm">
+                <div className="card-body p-6">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <Icon icon="solar:gift-outline" className="size-5" />
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    Rewards Redeemed
+                  </p>
+
+                  <p className="text-3xl font-bold mt-1">
+                    {redemptions.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="card bg-card border border-border shadow-sm">
+                <div className="card-body p-6">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <Icon icon="solar:phone-outline" className="size-5" />
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">Phone</p>
+
+                  <p className="text-lg font-bold mt-2 break-words">
+                    {profile?.phone || "Not provided"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Referral */}
+          <section className="card bg-card border border-border shadow-sm">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon
+                    icon="solar:users-group-rounded-outline"
+                    className="size-5"
+                  />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold">Refer a Friend</h2>
+
+                  <p className="text-sm text-muted-foreground">
+                    Share your referral code with friends.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      Your Referral Code
+                    </span>
+                  </label>
+
+                  <input
+                    type="text"
+                    value={profile?.referralCode || ""}
+                    readOnly
+                    className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300 font-bold tracking-wider"
+                  />
+                </div>
+
+                <div className="flex items-end">
                   <button
                     type="button"
-                    onClick={() => setShowAvatarPicker((v) => !v)}
-                    disabled={uploading}
-                    className="btn btn-circle btn-primary btn-sm absolute bottom-0 right-0 shadow-md disabled:opacity-60"
-                    aria-label="Change profile photo"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        profile?.referralCode || "",
+                      );
+                      setMessage("Referral code copied successfully.");
+                    }}
+                    className="btn btn-dark text-white w-full sm:w-auto"
+                    disabled={!profile?.referralCode}
                   >
-                    <Icon icon="solar:pen-outline" className="size-4" />
+                    <Icon icon="solar:copy-outline" className="size-5" />
+                    Copy Code
                   </button>
 
                   <input
@@ -150,109 +377,188 @@ export function Profile() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </section>
 
-                {avatarError && (
-                  <p className="text-xs font-semibold text-primary bg-primary/10 rounded-xl px-3 py-2 mb-4 max-w-xs">
-                    {avatarError}
+          {/* Edit Personal Information */}
+          <section className="card bg-card border border-border shadow-sm">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon icon="solar:user-id-outline" className="size-5" />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold">Personal Information</h2>
+
+                  <p className="text-sm text-muted-foreground">
+                    Update your account details
                   </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* First Name */}
+                  <div>
+                    <label className="label">
+                      <span className="label-text font-semibold">
+                        First Name
+                      </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300"
+                      placeholder="First name"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  {/* Last Name */}
+                  <div>
+                    <label className="label">
+                      <span className="label-text font-semibold">
+                        Last Name
+                      </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300"
+                      placeholder="Last name"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="label">
+                    <span className="label-text font-semibold">Email</span>
+                  </label>
+
+                  <input
+                    type="email"
+                    value={profile?.email || ""}
+                    className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300"
+                    disabled
+                  />
+
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Email cannot be changed from your profile.
+                  </p>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      Phone Number
+                    </span>
+                  </label>
+
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="input input-bordered w-full bg-gray-100 text-gray-900 border-gray-300"
+                    placeholder="Phone number"
+                    disabled={saving}
+                  />
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="alert alert-error">
+                    <Icon
+                      icon="solar:danger-circle-outline"
+                      className="size-5"
+                    />
+                    <span>{error}</span>
+                  </div>
                 )}
 
-                <h2 className="text-2xl font-bold">{profile?.full_name || "—"}</h2>
-                <p className="text-sm text-muted-foreground mt-1">{profile?.email || "—"}</p>
-                <div className="badge badge-lg bg-accent/10 text-accent-foreground border-none font-bold mt-4 p-4 gap-2">
-                  <Icon icon="solar:crown-star-outline" className="size-5 text-accent" />
-                  {profile?.tier ?? "Gold"} Member Since {memberSinceYear}
-                </div>
-              </div>
-            </section>
+                {/* Success */}
+                {message && (
+                  <div className="alert alert-success">
+                    <Icon
+                      icon="solar:check-circle-outline"
+                      className="size-5"
+                    />
+                    <span>{message}</span>
+                  </div>
+                )}
 
-            <section className="grid grid-cols-2 gap-4">
-              <div className="card bg-card border border-border shadow-sm hover:border-accent/30">
-                <div className="card-body p-5 text-center">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lifetime Points</p>
-                  <p className="mt-2 text-3xl font-bold text-accent">
-                    {(profile?.lifetime_points ?? 0).toLocaleString()}
+                {/* Save Changes */}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="btn btn-primary"
+                >
+                  {saving ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="solar:diskette-outline" className="size-5" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          {/* Security */}
+          <section className="card bg-card border border-border shadow-sm">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon icon="solar:shield-check-outline" className="size-5" />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold">Security</h2>
+
+                  <p className="text-sm text-muted-foreground">
+                    Manage your account security
                   </p>
                 </div>
               </div>
-              <div className="card bg-card border border-border shadow-sm hover:border-primary/20">
-                <div className="card-body p-5 text-center">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rewards Claimed</p>
-                  <p className="mt-2 text-3xl font-bold text-primary">{redemptions.length}</p>
-                </div>
-              </div>
-            </section>
-          </div>
 
-          {/* ── Right: Settings menus ── */}
-          <div className="lg:col-span-8 space-y-12 lg:space-y-16" ref={settingsSectionRef}>
-
-            <section>
-              <h3 className="font-bold text-lg mb-4">Account Settings</h3>
-              <div className="card bg-card border border-border shadow-sm overflow-hidden">
-                <div className="divide-y divide-border">
-                  {ACCOUNT_SETTINGS.map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => navigate(item.to)}
-                      className="w-full flex items-center justify-between p-5 hover:bg-muted/20 transition-colors group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-xl bg-input flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                          <Icon icon={item.icon} className="size-6" />
-                        </div>
-                        <div className="text-left">
-                          <span className="block text-base font-bold">{item.label}</span>
-                          <span className="block text-sm text-muted-foreground mt-0.5">{item.sub}</span>
-                        </div>
-                      </div>
-                      <Icon icon="solar:alt-arrow-right-outline" className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="font-bold text-lg mb-4">Support & Privacy</h3>
-              <div className="card bg-card border border-border shadow-sm overflow-hidden">
-                <div className="divide-y divide-border">
-                  {SUPPORT_SETTINGS.map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => navigate(item.to)}
-                      className="w-full flex items-center justify-between p-5 hover:bg-muted/20 transition-colors group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-xl bg-input flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                          <Icon icon={item.icon} className="size-6" />
-                        </div>
-                        <div className="text-left">
-                          <span className="block text-base font-bold">{item.label}</span>
-                          <span className="block text-sm text-muted-foreground mt-0.5">{item.sub}</span>
-                        </div>
-                      </div>
-                      <Icon icon="solar:alt-arrow-right-outline" className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section className="pt-2 pb-8">
               <button
                 type="button"
-                onClick={handleSignOut}
-                className="btn btn-error btn-outline w-full md:w-auto px-10 rounded-xl font-bold"
+                onClick={() => navigate("/profile/privacy-security")}
+                className="btn btn-dark btn-sm cursor-pointer mt-3 text-white"
               >
-                <Icon icon="solar:logout-2-outline" className="size-5" />
-                Log Out
+                <Icon icon="solar:lock-keyhole-outline" className="size-5" />
+                Privacy & Security
               </button>
-            </section>
-          </div>
+            </div>
+          </section>
 
+          {/* Log Out */}
+          <section>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="btn btn-error btn-outline w-full sm:w-auto px-10 rounded-xl font-bold"
+            >
+              <Icon icon="solar:logout-2-outline" className="size-5" />
+              Log Out
+            </button>
+          </section>
         </div>
       </div>
 

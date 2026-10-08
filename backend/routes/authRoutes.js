@@ -1,4 +1,7 @@
+
+
 const express = require('express');
+
 
 const authController = require('../controllers/authController');
 
@@ -6,7 +9,8 @@ const protect = require('../middleware/authMiddleware');
 
 const authorize = require('../middleware/roleMiddleware');
 
-const uploadAvatar = require('../middleware/uploadMiddleware');
+
+const upload = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -20,13 +24,17 @@ router.post('/resendVerificationCode', authController.resendVerificationCode);
 
 router.post('/loginUser', authController.loginUser);
 
+router.post('/forgotPassword', authController.forgotPassword);
+
+router.post('/resetPassword', authController.resetPassword);
+
+router.patch( "/uploadProfilePhoto", protect, upload.single("profilePhoto"), authController.uploadProfilePhoto);
+
 router.get('/getUser', protect, authController.getUser);
 
 router.get('/getAllUsers', protect, authorize('ADMIN'), authController.getAllUsers);
 
 router.patch('/updateUser', protect, authController.updateUser);
-
-router.patch('/uploadAvatar', protect, uploadAvatar.single('avatar'), authController.uploadAvatar);
 
 router.patch('/changePassword', protect, authController.changePassword);
 

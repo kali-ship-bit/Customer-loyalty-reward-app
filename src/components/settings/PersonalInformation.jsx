@@ -7,9 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 export function PersonalInformation() {
   const { profile, updateProfile } = useAppData();
   const { user } = useAuth();
-  const [firstName, setFirstName] = useState(profile?.first_name ?? "");
-  const [lastName, setLastName] = useState(profile?.last_name ?? "");
-  const [phone, setPhone] = useState(profile?.phone ?? "");
+  const [fullName, setFullName] = useState(profile?.full_name ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +17,7 @@ export function PersonalInformation() {
     setSaving(true);
     setError("");
     setSaved(false);
-    const { error } = await updateProfile({ first_name: firstName, last_name: lastName, phone });
+    const { error } = await updateProfile({ full_name: fullName });
     setSaving(false);
     if (error) {
       setError(error.message);
@@ -44,36 +42,13 @@ export function PersonalInformation() {
       <div className="px-5 md:px-8 mt-6 max-w-lg">
         <form onSubmit={handleSave} className="card bg-card border border-border shadow-sm">
           <div className="card-body p-6 space-y-5">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-semibold" htmlFor="firstName">First name</label>
-                <input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold" htmlFor="lastName">Last name</label>
-                <input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
-                />
-              </div>
-            </div>
-
             <div>
-              <label className="text-sm font-semibold" htmlFor="phone">Phone number</label>
+              <label className="text-sm font-semibold" htmlFor="fullName">Full name</label>
               <input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
               />
             </div>

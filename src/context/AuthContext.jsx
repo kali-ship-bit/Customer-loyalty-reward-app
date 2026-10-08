@@ -1,134 +1,227 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiRequest, getStoredToken, setToken } from "../lib/apiClient";
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext(null);
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On first load, if a token is already saved, try to restore the session.
+  // Get the currently logged-in user when the app starts
   useEffect(() => {
-    const token = getStoredToken();
+    const token = localStorage.getItem("token");
+
     if (!token) {
       setLoading(false);
       return;
     }
 
-    apiRequest("/auth/getUser")
-      .then((res) => setUser(res.data.user))
+    fetch(`${API_URL}/auth/getUser`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(async (response) => {
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to get user");
+        }
+
+        return result;
+      })
+      .then((result) => {
+        setUser(result.data.user);
+      })
       .catch(() => {
-        // token missing/expired/invalid — clear it and fall back to logged out
-        setToken(null);
+        localStorage.removeItem("token");
         setUser(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  // Create a new account. Does NOT log the user in — the backend requires
-  // email verification before a login is allowed, so the caller should
-  // route to the verify-email page next.
-  const signUp = async ({ firstName, lastName, email, phone, password }) => {
+  // Register
+  const signUp = async ({
+    firstName,
+    lastName,
+    email,
+    phone,
+    password,
+    referralCode,
+  }) => {
     try {
-      const res = await apiRequest("/auth/createUser", {
+      const response = await fetch(`${API_URL}/auth/createUser`, {
         method: "POST",
-        body: { firstName, lastName, email, phone, password },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          password,
+          referralCode,
+        }),
       });
-      return { data: res.data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: err.message } };
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          data: null,
+          error: {
+            message: result.message || "Registration failed",
+          },
+        };
+      }
+
+      return {
+        data: result.data,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error: {
+          message: "Unable to connect to the server",
+        },
+      };
     }
   };
 
-  const verifyEmail = async ({ email, code }) => {
-    try {
-      const res = await apiRequest("/auth/verifyEmail", {
-        method: "POST",
-        body: { email, code },
-      });
-      return { data: res, error: null };
-    } catch (err) {
-      return { data: null, error: { message: err.message } };
-    }
-  };
-
-  const resendVerificationCode = async (email) => {
-    try {
-      const res = await apiRequest("/auth/resendVerificationCode", {
-        method: "POST",
-        body: { email },
-      });
-      return { data: res, error: null };
-    } catch (err) {
-      return { data: null, error: { message: err.message } };
-    }
-  };
-
+  // Login
   const signIn = async ({ email, password }) => {
     try {
-      const res = await apiRequest("/auth/loginUser", {
+      const response = await fetch(`${API_URL}/auth/loginUser`, {
         method: "POST",
-        body: { email, password },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
-      setToken(res.data.token);
-      setUser(res.data.user);
-      return { data: res.data, error: null };
-    } catch (err) {
-      // The backend sends this exact message when the account exists but
-      // hasn't verified their email yet — use it to route to /verify-email.
-      const needsVerification = /verify your email/i.test(err.message || "");
-      return { data: null, error: { message: err.message, needsVerification } };
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          data: null,
+          error: {
+            message: result.message || "Login failed",
+          },
+        };
+      }
+
+      const token = result.data?.token;
+
+      if (!token) {
+        return {
+          data: null,
+          error: {
+            message: "Login succeeded but no token was returned",
+          },
+        };
+      }
+
+      localStorage.setItem("token", token);
+
+      // Get the logged-in user's profile
+      const userResponse = await fetch(`${API_URL}/auth/getUser`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const userResult = await userResponse.json();
+
+      if (!userResponse.ok) {
+        localStorage.removeItem("token");
+
+        return {
+          data: null,
+          error: {
+            message: userResult.message || "Unable to load user profile",
+          },
+        };
+      }
+
+      setUser(userResult.data.user);
+
+      return {
+        data: {
+          user: userResult.data.user,
+          token,
+        },
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error: {
+          message: "Unable to connect to the server",
+        },
+      };
     }
   };
 
-  const signOut = async () => {
-    setToken(null);
+  // Logout
+  const signOut = () => {
+    localStorage.removeItem("token");
     setUser(null);
   };
 
-  // Re-fetches the current user from the backend (used after profile/avatar updates).
-  const refreshUser = async () => {
-    try {
-      const res = await apiRequest("/auth/getUser");
-      setUser(res.data.user);
-      return res.data.user;
-    } catch {
-      setToken(null);
-      setUser(null);
-      return null;
+  // Change password
+  const updatePassword = async (newPassword, currentPassword) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("You are not logged in");
     }
-  };
 
-  const updatePassword = async ({ currentPassword, newPassword }) => {
-    await apiRequest("/auth/changePassword", {
+    const response = await fetch(`${API_URL}/auth/changePassword`, {
       method: "PATCH",
-      body: { currentPassword, newPassword },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+      }),
     });
-  };
 
-  const deactivateAccount = async () => {
-    await apiRequest("/auth/deactivateAccount", { method: "PATCH" });
-    await signOut();
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to change password");
+    }
+
+    return result;
   };
 
   const value = {
     user,
     loading,
+    session: user ? { user } : null,
     signUp,
-    verifyEmail,
-    resendVerificationCode,
     signIn,
     signOut,
-    refreshUser,
     updatePassword,
-    deactivateAccount,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (ctx === undefined) throw new Error("useAuth must be used inside <AuthProvider>");
-  return ctx;
+  return useContext(AuthContext);
 }

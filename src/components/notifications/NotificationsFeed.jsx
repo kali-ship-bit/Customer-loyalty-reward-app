@@ -16,7 +16,7 @@ function timeAgo(dateStr) {
 export function NotificationsFeed() {
   const navigate = useNavigate();
   const { notifications, markNotificationRead, markAllNotificationsRead } = useAppData();
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
@@ -29,9 +29,14 @@ export function NotificationsFeed() {
               aria-label="Back"
               className="btn btn-circle btn-ghost btn-md border border-border bg-card shadow-sm"
             >
-              <Icon icon="solar:arrow-left-outline" className="size-5" />
+              <Icon
+                icon="solar:arrow-left-outline"
+                className="size-5 text-black"
+              />
             </button>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Notifications</h1>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              Notifications
+            </h1>
           </div>
           {unreadCount > 0 && (
             <button
@@ -49,37 +54,54 @@ export function NotificationsFeed() {
         {notifications.length === 0 ? (
           <div className="card bg-card border border-border shadow-sm">
             <div className="card-body p-10 items-center text-center">
-              <Icon icon="solar:bell-outline" className="size-10 text-muted-foreground mb-2" />
+              <Icon
+                icon="solar:bell-outline"
+                className="size-10 text-muted-foreground mb-2"
+              />
               <p className="font-bold">You're all caught up</p>
-              <p className="text-sm text-muted-foreground mt-1">No notifications yet.</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                No notifications yet.
+              </p>
             </div>
           </div>
         ) : (
-          <div className="card bg-card border border-border shadow-sm overflow-hidden">
-            <div className="divide-y divide-border">
-              {notifications.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  onClick={() => !n.is_read && markNotificationRead(n.id)}
-                  className={`w-full text-left flex items-start gap-4 p-5 transition-colors hover:bg-muted/20 ${
-                    !n.is_read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon icon="solar:bell-bold" className="size-5" />
+          <div className="space-y-3">
+            {notifications.map((n) => (
+              <button
+                key={n._id}
+                type="button"
+                onClick={() => !n.isRead && markNotificationRead(n._id)}
+                className={`w-full text-left flex items-start gap-4 p-5 rounded-xl border transition-colors ${
+                  n.isRead
+                    ? "bg-card border-border"
+                    : "bg-primary/5 border-primary/20"
+                }`}
+              >
+                <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Icon icon="solar:bell-bold" className="size-5" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-sm md:text-base">{n.title}</p>
+
+                    {!n.isRead && (
+                      <span className="size-2 rounded-full bg-primary shrink-0" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-sm md:text-base">{n.title}</p>
-                      {!n.is_read && <span className="size-2 rounded-full bg-primary shrink-0" />}
-                    </div>
-                    {n.body && <p className="text-sm text-muted-foreground mt-0.5">{n.body}</p>}
-                    <p className="text-xs text-muted-foreground mt-1.5">{timeAgo(n.created_at)}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+
+                  {n.body && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {n.body}
+                    </p>
+                  )}
+
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {timeAgo(n.createdAt)}
+                  </p>
+                </div>
+              </button>
+            ))}
           </div>
         )}
       </div>

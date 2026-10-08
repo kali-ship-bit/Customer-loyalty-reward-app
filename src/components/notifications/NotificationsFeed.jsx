@@ -27,9 +27,12 @@ export function NotificationsFeed() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Back"
-              className="btn btn-circle btn-ghost btn-md border border-border bg-card shadow-sm text-muted-foreground hover:text-foreground"
+              className="btn btn-circle btn-ghost btn-md border border-border bg-card shadow-sm"
             >
-              <Icon icon="solar:arrow-left-outline" className="size-5" />
+              <Icon
+                icon="solar:arrow-left-outline"
+                className="size-5 text-black"
+              />
             </button>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
               Notifications

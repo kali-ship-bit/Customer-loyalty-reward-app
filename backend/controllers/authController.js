@@ -127,6 +127,8 @@ exports.createUser = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Verification email failed:", error);
+    
     res.status(500).json({
       success: false,
       message: "Error creating user",

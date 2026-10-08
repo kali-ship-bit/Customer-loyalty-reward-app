@@ -104,3 +104,28 @@ exports.markAllNotificationsRead = async (req, res) => {
     });
   }
 };
+
+// Delete all read notifications
+exports.deleteReadNotifications = async (req, res) => {
+  try {
+    const result = await Notification.deleteMany({
+      user: req.user._id,
+      isRead: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Read notifications deleted successfully",
+      data: {
+        deletedCount: result.deletedCount,
+      },
+    });
+  } catch (error) {
+    console.error("Delete read notifications error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete read notifications",
+    });
+  }
+};

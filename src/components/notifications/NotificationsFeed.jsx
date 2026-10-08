@@ -15,8 +15,14 @@ function timeAgo(dateStr) {
 
 export function NotificationsFeed() {
   const navigate = useNavigate();
-  const { notifications, markNotificationRead, markAllNotificationsRead } = useAppData();
+  const {
+    notifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    deleteReadNotifications,
+  } = useAppData();
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const readCount = notifications.filter((n) => n.isRead).length;
 
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
@@ -38,15 +44,27 @@ export function NotificationsFeed() {
               Notifications
             </h1>
           </div>
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              onClick={markAllNotificationsRead}
-              className="btn btn-ghost btn-sm text-primary font-bold hover:bg-primary/10"
-            >
-              Mark all read
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={markAllNotificationsRead}
+                className="btn btn-ghost btn-sm text-primary font-bold hover:bg-primary/10"
+              >
+                Mark all read
+              </button>
+            )}
+
+            {readCount > 0 && (
+              <button
+                type="button"
+                onClick={deleteReadNotifications}
+                className="btn btn-ghost btn-sm text-muted-foreground font-bold hover:bg-muted"
+              >
+                Delete all read
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

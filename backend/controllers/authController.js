@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 
 const User = require("../models/usermodel");
 
+const Notification = require("../models/notificationModel");
+
 const generateToken = require("../utilities/generateToken");
 
 const cloudinary = require("../config/cloudinary");
@@ -344,6 +346,12 @@ exports.loginUser = async (req, res) => {
     }
 
     const token = generateToken(user._id);
+
+    await Notification.create({
+      user: user._id,
+      title: "Welcome back!",
+      body: "You successfully signed in to your account.",
+    });
 
     res.status(200).json({
       success: true,

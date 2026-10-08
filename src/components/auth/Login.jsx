@@ -26,19 +26,23 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background px-5 py-10">
+    <div className="h-screen w-full flex items-center justify-center bg-background px-5 overflow-hidden">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-white shadow-sm mb-4">
             <Icon icon="solar:crown-star-bold" className="size-8" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sign in to your LoyaltyApp account</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Sign in to your LoyaltyApp account
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold" htmlFor="email">Email</label>
+            <label className="text-sm font-semibold" htmlFor="email">
+              Email
+            </label>
             <input
               id="email"
               name="email"
@@ -71,7 +75,9 @@ export function Login() {
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <Icon
-                icon={showPassword ? "solar:eye-linear" : "solar:eye-closed-linear"}
+                icon={
+                  showPassword ? "solar:eye-linear" : "solar:eye-closed-linear"
+                }
                 className="size-5"
               />
             </button>

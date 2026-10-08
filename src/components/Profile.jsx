@@ -62,7 +62,7 @@ export function Profile() {
       uploadData.append("profilePhoto", file);
 
       const response = await fetch(
-        "http://localhost:3000/api/auth/uploadProfilePhoto",
+        `${API_URL}/auth/uploadProfilePhoto`,
         {
           method: "PATCH",
           headers: {

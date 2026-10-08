@@ -8,6 +8,8 @@ const User = require("../models/usermodel");
 
 const Point = require("../models/pointModel");
 
+const Notification = require("../models/notificationModel");
+
 // CREATE REWARD - ADMIN
 exports.createReward = async (req, res) => {
   try {
@@ -89,6 +91,16 @@ exports.createReward = async (req, res) => {
       isAvailable: quantity > 0,
       featured,
     });
+
+    const activeUsers = await User.find({ isActive: true }).select("_id");
+
+    await Notification.insertMany(
+      activeUsers.map((user) => ({
+        user: user._id,
+        title: "New reward available!",
+        body: `${reward.name} is now available to redeem.`,
+      })),
+    );
 
     return res.status(201).json({
       success: true,
@@ -261,12 +273,18 @@ exports.redeemReward = async (req, res) => {
 
     await session.commitTransaction();
 
+    await Notification.create({
+      user: user._id,
+      title: "Reward redeemed!",
+      body: `You redeemed ${reward.pointsRequired} points for ${reward.name}. Your remaining balance is ${user.pointsBalance} points.`,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Reward redeemed successfully",
       data: {
         redemption,
-        pointTransaction: pointTransaction[0],
+        pointTransaction: pointTransaction,
         reward: reward.name,
         pointsUsed: reward.pointsRequired,
         remainingPoints: user.pointsBalance,
@@ -413,73 +431,73 @@ exports.reactivateReward = async (req, res) => {
 
 // TOGGLE FEATURED REWARD - ADMIN
 exports.toggleFeaturedReward = async (req, res) => {
-    try {
-        const reward = await Reward.findById(req.params.id);
+  try {
+    const reward = await Reward.findById(req.params.id);
 
-        if (!reward) {
-            return res.status(404).json({
-                success: false,
-                message: "Reward not found",
-                data: null,
-            });
-        }
-
-        // Cannot feature an unavailable/out-of-stock reward
-        if (!reward.featured && (!reward.isAvailable || reward.quantity <= 0)) {
-            return res.status(400).json({
-                success: false,
-                message: "Only available rewards with stock can be featured",
-                data: null,
-            });
-        }
-
-        reward.featured = !reward.featured;
-
-        await reward.save();
-
-        return res.status(200).json({
-            success: true,
-            message: reward.featured
-                ? "Reward featured successfully"
-                : "Reward removed from featured rewards",
-            data: {
-                reward,
-            },
-        });
-    } catch (error) {
-        console.error("Error toggling featured reward:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Unable to update featured reward",
-            data: null,
-        });
+    if (!reward) {
+      return res.status(404).json({
+        success: false,
+        message: "Reward not found",
+        data: null,
+      });
     }
+
+    // Cannot feature an unavailable/out-of-stock reward
+    if (!reward.featured && (!reward.isAvailable || reward.quantity <= 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only available rewards with stock can be featured",
+        data: null,
+      });
+    }
+
+    reward.featured = !reward.featured;
+
+    await reward.save();
+
+    return res.status(200).json({
+      success: true,
+      message: reward.featured
+        ? "Reward featured successfully"
+        : "Reward removed from featured rewards",
+      data: {
+        reward,
+      },
+    });
+  } catch (error) {
+    console.error("Error toggling featured reward:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update featured reward",
+      data: null,
+    });
+  }
 };
 
 // GET FEATURED REWARDS - USER
 exports.getFeaturedRewards = async (req, res) => {
-    try {
-        const rewards = await Reward.find({
-            featured: true,
-            isAvailable: true,
-            quantity: { $gt: 0 },
-        }).sort({ createdAt: -1 });
+  try {
+    const rewards = await Reward.find({
+      featured: true,
+      isAvailable: true,
+      quantity: { $gt: 0 },
+    }).sort({ createdAt: -1 });
 
-        return res.status(200).json({
-            success: true,
-            message: "Featured rewards retrieved successfully",
-            data: {
-                rewards,
-            },
-        });
-    } catch (error) {
-        console.error("Error getting featured rewards:", error);
+    return res.status(200).json({
+      success: true,
+      message: "Featured rewards retrieved successfully",
+      data: {
+        rewards,
+      },
+    });
+  } catch (error) {
+    console.error("Error getting featured rewards:", error);
 
-        return res.status(500).json({
-            success: false,
-            message: "Unable to retrieve featured rewards",
-            data: null,
-        });
-    }
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve featured rewards",
+      data: null,
+    });
+  }
 };

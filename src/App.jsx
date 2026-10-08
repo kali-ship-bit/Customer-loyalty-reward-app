@@ -7,6 +7,7 @@ import { Wallet } from "./components/Wallet";
 import { Profile } from "./components/Profile";
 import { Sidebar } from "./components/Sidebar";
 import { PurchaseHistory } from "./components/PurchaseHistory";
+import { NotificationsFeed } from "./components/notifications/NotificationsFeed";
 
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
@@ -19,8 +20,6 @@ import { PaymentMethods } from "./components/settings/PaymentMethods";
 import { NotificationsSettings } from "./components/settings/NotificationsSettings";
 import { PrivacySecurity } from "./components/settings/PrivacySecurity";
 import { HelpSupport } from "./components/settings/HelpSupport";
-
-import { NotificationsFeed } from "./components/notifications/NotificationsFeed";
 
 
 function AppShell({ children }) {
@@ -40,7 +39,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />  
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
       <Route path="/forgot-password" element={<ForgotPassword />} />
 

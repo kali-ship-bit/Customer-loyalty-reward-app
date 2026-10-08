@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { SettingsHeader } from "./SettingsHeader";
 import { useAuth } from "../../context/AuthContext";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export function PrivacySecurity() {
   const { updatePassword, signOut } = useAuth();
   const navigate = useNavigate();
@@ -66,15 +68,12 @@ export function PrivacySecurity() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        "http://localhost:3000/api/auth/deactivateAccount",
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/deactivateAccount`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
 
@@ -121,10 +120,7 @@ export function PrivacySecurity() {
             </div>
 
             <div>
-              <label
-                className="text-sm font-semibold"
-                htmlFor="newPassword"
-              >
+              <label className="text-sm font-semibold" htmlFor="newPassword">
                 New password
               </label>
 
@@ -171,10 +167,7 @@ export function PrivacySecurity() {
                 "Updating…"
               ) : pwSaved ? (
                 <span className="flex items-center gap-2">
-                  <Icon
-                    icon="solar:check-circle-bold"
-                    className="size-5"
-                  />
+                  <Icon icon="solar:check-circle-bold" className="size-5" />
                   Password updated
                 </span>
               ) : (
@@ -189,8 +182,8 @@ export function PrivacySecurity() {
             <h2 className="font-bold text-lg">Data & privacy</h2>
 
             <p className="text-sm text-muted-foreground">
-              Your account information, points balance, purchase history,
-              and redemption history are protected by authenticated access.
+              Your account information, points balance, purchase history, and
+              redemption history are protected by authenticated access.
             </p>
           </div>
         </div>

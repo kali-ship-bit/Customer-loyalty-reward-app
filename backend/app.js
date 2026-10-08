@@ -13,6 +13,7 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const pointRoutes = require('./routes/pointRoutes');
 const rewardRoutes = require('./routes/rewardRoutes');
 const favoriteRoutes = require("./routes/favoriteRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/favorites", favoriteRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use('/api/points', pointRoutes);
 app.use('/api/rewards', rewardRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // port
 const PORT = process.env.PORT || 3000;

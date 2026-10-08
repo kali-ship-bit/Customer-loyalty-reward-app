@@ -70,14 +70,11 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
-        <div className="card w-full max-w-md bg-white border border-gray-200 shadow-lg">
-            <div className="card-body">
-
+      <div className="card w-full max-w-md bg-white border border-gray-200 shadow-lg">
+        <div className="card-body">
           {step === 1 ? (
             <>
-              <h2 className="card-title text-2xl mb-2">
-                Forgot Password?
-              </h2>
+              <h2 className="card-title text-2xl mb-2">Forgot Password?</h2>
 
               <p className="text-sm text-gray-600 mb-4">
                 Enter your email address and we'll send you a password reset
@@ -85,7 +82,6 @@ const ForgotPassword = () => {
               </p>
 
               <form onSubmit={handleForgotPassword} className="space-y-4">
-
                 <div>
                   <label className="label">
                     <span className="label-text text-gray-700">Email</span>
@@ -102,15 +98,11 @@ const ForgotPassword = () => {
                 </div>
 
                 {message && (
-                  <div className="alert alert-success text-sm">
-                    {message}
-                  </div>
+                  <div className="alert alert-success text-sm">{message}</div>
                 )}
 
                 {error && (
-                  <div className="alert alert-error text-sm">
-                    {error}
-                  </div>
+                  <div className="alert alert-error text-sm">{error}</div>
                 )}
 
                 <button
@@ -120,7 +112,6 @@ const ForgotPassword = () => {
                 >
                   {loading ? "Sending..." : "Send Reset Code"}
                 </button>
-
               </form>
 
               <button
@@ -133,9 +124,7 @@ const ForgotPassword = () => {
             </>
           ) : (
             <>
-              <h2 className="card-title text-2xl mb-2">
-                Reset Password
-              </h2>
+              <h2 className="card-title text-2xl mb-2">Reset Password</h2>
 
               <p className="text-sm text-base-content/70 mb-4">
                 Enter the 6-digit code sent to your email and choose a new
@@ -143,7 +132,6 @@ const ForgotPassword = () => {
               </p>
 
               <form onSubmit={handleResetPassword} className="space-y-4">
-
                 <div>
                   <label className="label">
                     <span className="label-text">Reset Code</span>
@@ -178,15 +166,11 @@ const ForgotPassword = () => {
                 </div>
 
                 {message && (
-                  <div className="alert alert-success text-sm">
-                    {message}
-                  </div>
+                  <div className="alert alert-success text-sm">{message}</div>
                 )}
 
                 {error && (
-                  <div className="alert alert-error text-sm">
-                    {error}
-                  </div>
+                  <div className="alert alert-error text-sm">{error}</div>
                 )}
 
                 <button
@@ -196,7 +180,6 @@ const ForgotPassword = () => {
                 >
                   {loading ? "Resetting..." : "Reset Password"}
                 </button>
-
               </form>
 
               <button
@@ -208,7 +191,6 @@ const ForgotPassword = () => {
               </button>
             </>
           )}
-
         </div>
       </div>
     </div>

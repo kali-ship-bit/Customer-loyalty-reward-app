@@ -1,4 +1,5 @@
 import { Icon } from "@iconify/react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileNav } from "./Sidebar";
 import { useAppData } from "../context/AppDataContext";
@@ -29,6 +30,20 @@ function timeAgo(dateStr) {
 export function Home() {
   const navigate = useNavigate();
 
+  const [showStickyUserBar, setShowStickyUserBar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyUserBar(window.scrollY > 250);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   const {
     profile,
     rewards,
@@ -36,9 +51,14 @@ export function Home() {
     pointsHistory,
     purchases,
     redemptions,
+    notifications,
   } = useAppData();
 
   const points = profile?.pointsBalance ?? 0;
+
+  const unreadNotificationCount = notifications.filter(
+    (notification) => !notification.isRead,
+  ).length;
   const totalPointsEarned = profile?.totalPointsEarned ?? 0;
 
   const isPlatinum = totalPointsEarned >= 20000;
@@ -46,48 +66,43 @@ export function Home() {
 
   const nextGoal = 20000;
 
-  const toNextTier = isPlatinum
-    ? 0
-    : Math.max(nextGoal - totalPointsEarned, 0);
+  const toNextTier = isPlatinum ? 0 : Math.max(nextGoal - totalPointsEarned, 0);
 
   const progressPct = isPlatinum
     ? 100
-    : Math.min(
-        Math.round((totalPointsEarned / nextGoal) * 100),
-        100
-    );
- const handleInviteFriend = async () => {
-   const referralCode = profile?.referralCode;
+    : Math.min(Math.round((totalPointsEarned / nextGoal) * 100), 100);
+  const handleInviteFriend = async () => {
+    const referralCode = profile?.referralCode;
 
-   if (!referralCode) {
-     return;
-   }
+    if (!referralCode) {
+      return;
+    }
 
-   const signupUrl = `${window.location.origin}/signup?ref=${referralCode}`;
+    const signupUrl = `${window.location.origin}/signup?ref=${referralCode}`;
 
-   const shareData = {
-     title: "Join Customer Loyalty App",
-     text: "Join me on Customer Loyalty App and start earning loyalty points.",
-     url: signupUrl,
-   };
+    const shareData = {
+      title: "Join Customer Loyalty App",
+      text: "Join me on Customer Loyalty App and start earning loyalty points.",
+      url: signupUrl,
+    };
 
-   try {
-     if (navigator.share) {
-       await navigator.share(shareData);
-       return;
-     }
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
 
-     await navigator.clipboard.writeText(signupUrl);
+      await navigator.clipboard.writeText(signupUrl);
 
-     alert(
-       "Your referral link has been copied. You can now paste it into WhatsApp or any messaging app.",
-     );
-   } catch (error) {
-     if (error.name !== "AbortError") {
-       console.error("Unable to share referral link:", error);
-     }
-   }
- };
+      alert(
+        "Your referral link has been copied. You can now paste it into WhatsApp or any messaging app.",
+      );
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Unable to share referral link:", error);
+      }
+    }
+  };
 
   /*
    * Recent activity is built from:
@@ -101,10 +116,7 @@ export function Home() {
   const activity = [
     ...pointsHistory.map((entry) => ({
       id: `point-${entry._id}`,
-      title:
-        entry.type === "EARN"
-          ? "Points earned"
-          : "Points redeemed",
+      title: entry.type === "EARN" ? "Points earned" : "Points redeemed",
       created_at: entry.createdAt,
       points_delta:
         entry.type === "EARN"
@@ -120,19 +132,86 @@ export function Home() {
     })),
   ].sort(
     (a, b) =>
-      new Date(b.created_at).getTime() -
-      new Date(a.created_at).getTime()
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 
-const availableRewards = rewards
-  .filter(
-    (reward) => reward.isAvailable && reward.quantity > 0
+  const availableRewards = rewards
+    .filter(
+      (reward) => reward.isAvailable && reward.quantity > 0,
       // && !reward.featured,
-  )
-  .slice(0, 3);
+    )
+    .slice(0, 3);
 
   return (
     <main className="w-full text-foreground pb-24 md:pb-8 min-h-screen">
+      {showStickyUserBar && (
+        <div className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-md">
+          <div className="px-5 md:px-8 py-3 flex items-center justify-between gap-4">
+            {/* User */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                {profile?.profilePhoto ? (
+                  <img
+                    src={profile.profilePhoto}
+                    alt={`${profile.firstName} profile`}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-primary">
+                    {profile?.firstName?.charAt(0)?.toUpperCase()}
+                    {profile?.lastName?.charAt(0)?.toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <p className="font-semibold truncate">
+                  {profile?.firstName} {profile?.lastName}
+                </p>
+
+                <div className="flex items-center gap-1.5">
+                  <Icon
+                    icon="solar:crown-star-bold"
+                    className="size-3.5 text-primary"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {tier} Member
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Points */}
+            <div className="flex items-center gap-4 shrink-0">
+              {/* Notifications */}
+              <button
+                type="button"
+                onClick={() => navigate("/notifications")}
+                aria-label="Notifications"
+                className="relative size-10 rounded-full border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <Icon icon="solar:bell-outline" className="size-5" />
+
+                {unreadNotificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {unreadNotificationCount > 99
+                      ? "99+"
+                      : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Points */}
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Points</p>
+                <p className="font-bold text-primary">
+                  {points.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="px-5 md:px-8 pt-6 pb-8 space-y-8">
         {/* PROFILE BANNER */}
         <section className="relative overflow-hidden rounded-[2rem] bg-primary p-6 md:p-8 text-primary-foreground shadow-sm">
@@ -140,6 +219,24 @@ const availableRewards = rewards
           <div className="absolute -bottom-24 right-20 size-64 rounded-full bg-white/5" />
 
           <div className="relative z-10">
+            <div className="flex justify-end mb-4">
+              <button
+                type="button"
+                onClick={() => navigate("/notifications")}
+                aria-label="Notifications"
+                className="relative size-11 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+              >
+                <Icon icon="solar:bell-outline" className="size-5" />
+
+                {unreadNotificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-white text-primary text-[10px] font-bold flex items-center justify-center">
+                    {unreadNotificationCount > 99
+                      ? "99+"
+                      : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+            </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               {/* Profile */}
               <div className="flex items-center gap-4">

@@ -8,6 +8,8 @@ const Point = require("../models/pointModel");
 
 const User = require("../models/usermodel");
 
+const Notification = require("../models/notificationModel");
+
 // Create a new purchase
 exports.createPurchase = async (req, res) => {
   const session = await mongoose.startSession();
@@ -158,10 +160,16 @@ exports.createPurchase = async (req, res) => {
     await user.save({ session });
     await point.save({ session });
     if (referralBonusPoint) {
-    await referralBonusPoint.save({ session });
-}
+      await referralBonusPoint.save({ session });
+    }
 
     await session.commitTransaction();
+
+    await Notification.create({
+      user: user._id,
+      title: "Purchase successful!",
+      body: `You earned ${pointsEarned} points from your purchase of ${product.name}.`,
+    });
 
     return res.status(201).json({
       success: true,

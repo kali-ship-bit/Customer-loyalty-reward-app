@@ -9,7 +9,10 @@ export function ProtectedRoute() {
   if (loading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-background">
-        <Icon icon="solar:crown-star-bold" className="size-10 text-primary animate-pulse" />
+        <Icon
+          icon="solar:crown-star-bold"
+          className="size-10 text-primary animate-pulse"
+        />
       </div>
     );
   }

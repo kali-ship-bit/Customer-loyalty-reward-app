@@ -79,7 +79,8 @@ export function VerifyEmail() {
       });
 
       setSuccess(
-        result.message || "A new verification code has been sent to your email."
+        result.message ||
+          "A new verification code has been sent to your email.",
       );
     } catch (error) {
       setError(error.message);
@@ -108,10 +109,7 @@ export function VerifyEmail() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="email"
-            >
+            <label className="text-sm font-semibold" htmlFor="email">
               Email
             </label>
 
@@ -128,10 +126,7 @@ export function VerifyEmail() {
 
           {/* Verification Code */}
           <div>
-            <label
-              className="text-sm font-semibold"
-              htmlFor="code"
-            >
+            <label className="text-sm font-semibold" htmlFor="code">
               Verification code
             </label>
 
@@ -142,9 +137,7 @@ export function VerifyEmail() {
               maxLength={6}
               required
               value={code}
-              onChange={(e) =>
-                setCode(e.target.value.replace(/\D/g, ""))
-              }
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl text-center tracking-[0.4em] text-lg font-bold"
               placeholder="123456"
             />
@@ -182,10 +175,7 @@ export function VerifyEmail() {
 
         <p className="text-sm text-center text-muted-foreground mt-6">
           Already verified?{" "}
-          <Link
-            to="/login"
-            className="font-bold text-primary hover:underline"
-          >
+          <Link to="/login" className="font-bold text-primary hover:underline">
             Sign in
           </Link>
         </p>

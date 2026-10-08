@@ -21,6 +21,7 @@ export function AppDataProvider({ children }) {
   const [pointsHistory, setPointsHistory] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Get current user profile
@@ -119,6 +120,19 @@ export function AppDataProvider({ children }) {
     }
   }, [user]);
 
+  // Get user's notifications
+  const refreshNotifications = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const result = await apiClient("/notifications/getMyNotifications");
+
+      setNotifications(result.data?.notifications || []);
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+    }
+  }, [user]);
+
   // Load customer data when user logs in
   useEffect(() => {
     if (!user) {
@@ -130,6 +144,7 @@ export function AppDataProvider({ children }) {
       setPointsHistory([]);
       setRedemptions([]);
       setFavorites([]);
+      setNotifications([]);
       return;
     }
 
@@ -145,6 +160,7 @@ export function AppDataProvider({ children }) {
         refreshPointsHistory(),
         refreshRedemptions(),
         refreshFavorites(),
+        refreshNotifications(),
       ]);
 
       setLoading(false);
@@ -161,6 +177,7 @@ export function AppDataProvider({ children }) {
     refreshPointsHistory,
     refreshRedemptions,
     refreshFavorites,
+    refreshNotifications,
   ]);
 
   // Purchase a product
@@ -181,6 +198,7 @@ export function AppDataProvider({ children }) {
           refreshProducts(),
           refreshPurchases(),
           refreshPointsHistory(),
+          refreshNotifications(),
         ]);
 
         return {
@@ -215,6 +233,7 @@ export function AppDataProvider({ children }) {
           refreshFeaturedRewards(),
           refreshPointsHistory(),
           refreshRedemptions(),
+          refreshNotifications(),
         ]);
 
         return {
@@ -285,6 +304,65 @@ export function AppDataProvider({ children }) {
     [refreshFavorites],
   );
 
+  // Mark one notification as read
+  const markNotificationRead = useCallback(async (notificationId) => {
+    try {
+      const result = await apiClient(
+        `/notifications/markNotificationRead/${notificationId}`,
+        {
+          method: "PATCH",
+        },
+      );
+
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) =>
+          notification._id === notificationId
+            ? { ...notification, isRead: true }
+            : notification,
+        ),
+      );
+
+      return {
+        data: result.data,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error,
+      };
+    }
+  }, []);
+
+  // Mark all notifications as read
+  const markAllNotificationsRead = useCallback(async () => {
+    try {
+      const result = await apiClient(
+        "/notifications/markAllNotificationsRead",
+        {
+          method: "PATCH",
+        },
+      );
+
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) => ({
+          ...notification,
+          isRead: true,
+        })),
+      );
+
+      return {
+        data: result.data,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error,
+      };
+    }
+  }, []);
+
   const isFavorite = useCallback(
     (productId) => {
       return favorites.some((product) => product._id === productId);
@@ -334,6 +412,7 @@ export function AppDataProvider({ children }) {
     refreshPointsHistory,
     refreshRedemptions,
     refreshFavorites,
+    refreshNotifications,
 
     purchaseProduct,
     redeemReward,
@@ -347,7 +426,9 @@ export function AppDataProvider({ children }) {
     vouchers: [],
     paymentMethods: [],
     notificationPrefs: null,
-    notifications: [],
+    notifications,
+    markNotificationRead,
+    markAllNotificationsRead,
 
     useVoucher: async () => ({
       error: new Error("Vouchers are not part of this MVP"),
@@ -371,14 +452,6 @@ export function AppDataProvider({ children }) {
 
     submitSupportTicket: async () => ({
       error: new Error("Support tickets are not part of this MVP"),
-    }),
-
-    markNotificationRead: async () => ({
-      error: new Error("Notifications are not part of this MVP"),
-    }),
-
-    markAllNotificationsRead: async () => ({
-      error: new Error("Notifications are not part of this MVP"),
     }),
   };
 

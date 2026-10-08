@@ -13,10 +13,11 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [searchParams] = useSearchParams();
 
   const [referralCode, setReferralCode] = useState(
-  searchParams.get("ref")?.toUpperCase() || "",
+    searchParams.get("ref")?.toUpperCase() || "",
   );
 
   const [error, setError] = useState("");
@@ -84,6 +85,8 @@ export function Signup() {
             <input
               id="firstName"
               type="text"
+              name="firstName"
+              autoComplete="given-name"
               required
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
@@ -101,6 +104,8 @@ export function Signup() {
             <input
               id="lastName"
               type="text"
+              name="lastName"
+              autoComplete="family-name"
               required
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
@@ -118,6 +123,8 @@ export function Signup() {
             <input
               id="email"
               type="email"
+              name="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -135,6 +142,8 @@ export function Signup() {
             <input
               id="phone"
               type="tel"
+              name="phone"
+              autoComplete="tel"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -144,20 +153,35 @@ export function Signup() {
           </div>
 
           {/* Password */}
-          <div>
+          <div className="relative">
             <label className="text-sm font-semibold" htmlFor="password">
               Password
             </label>
 
             <input
               id="password"
-              type="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
               placeholder="At least 6 characters"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              <Icon
+                icon={
+                  showPassword ? "solar:eye-linear" : "solar:eye-closed-linear"
+                }
+                className="size-5"
+              />
+            </button>
           </div>
 
           {/* Referral Code */}

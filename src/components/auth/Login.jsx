@@ -41,10 +41,12 @@ export function Login() {
             <label className="text-sm font-semibold" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
               className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
               placeholder="you@example.com"
             />
@@ -52,10 +54,12 @@ export function Login() {
           <div className="relative mt-1.5">
             <input
               id="password"
+              name="password"
               type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               className="input input-bordered w-full bg-input border-transparent focus:border-primary rounded-xl pr-12"
               placeholder="••••••••"
             />

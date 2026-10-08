@@ -208,7 +208,7 @@ export function Home() {
                   {points.toLocaleString()}
                 </p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}

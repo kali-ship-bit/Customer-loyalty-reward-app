@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { useNavigate } from "react-router-dom";
 import { MobileNav } from "./Sidebar";
 import { useAppData } from "../context/AppDataContext";
 

@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -333,49 +332,6 @@ export function Profile() {
                     <Icon icon="solar:copy-outline" className="size-5" />
                     Copy Code
                   </button>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleFileSelected}
-                  />
-
-                  {showAvatarPicker && (
-                    <div className="absolute z-30 top-full mt-3 left-1/2 -translate-x-1/2 w-72 card bg-card border border-border shadow-xl">
-                      <div className="card-body p-4">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowAvatarPicker(false);
-                            fileInputRef.current?.click();
-                          }}
-                          className="btn btn-primary btn-sm w-full rounded-xl font-bold mb-4"
-                        >
-                          <Icon icon="solar:upload-outline" className="size-4" />
-                          Upload a photo
-                        </button>
-
-                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                          Or choose an icon
-                        </p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {AVATAR_ICON_OPTIONS.map((opt) => (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => handlePickIcon(opt.id)}
-                              className={`size-14 rounded-full flex items-center justify-center hover:ring-2 hover:ring-primary transition-all ${opt.bg}`}
-                              aria-label={opt.id}
-                            >
-                              <Icon icon={opt.id} className={`size-7 ${opt.color}`} />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

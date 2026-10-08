@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.use(protect);
 
-router.post('/createPurchase', authorize('USER'), purchaseController.createPurchase);
+router.post('/createPurchase', authorize('ADMIN'), purchaseController.createPurchase);
 
 router.get('/getMyPurchaseHistory', authorize('USER'), purchaseController.getMyPurchaseHistory);
 

@@ -158,30 +158,34 @@ export function Signup() {
               Password
             </label>
 
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className="input input-bordered w-full mt-1.5 bg-input border-transparent focus:border-primary rounded-xl"
-              placeholder="At least 6 characters"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              <Icon
-                icon={
-                  showPassword ? "solar:eye-linear" : "solar:eye-closed-linear"
-                }
-                className="size-5"
+            <div className="relative mt-1.5">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="input input-bordered w-full pr-12 bg-input border-transparent focus:border-primary rounded-xl"
+                placeholder="At least 6 characters"
               />
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <Icon
+                  icon={
+                    showPassword
+                      ? "solar:eye-linear"
+                      : "solar:eye-closed-linear"
+                  }
+                  className="size-5"
+                />
+              </button>
+            </div>
           </div>
 
           {/* Referral Code */}

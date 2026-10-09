@@ -15,13 +15,13 @@ exports.createPurchase = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
-    const { productId, quantity, userId } = req.body;
+    const { productId, quantity } = req.body;
 
     // Check required fields
-    if (!productId || !userId || quantity === undefined) {
+    if (!productId || quantity === undefined) {
       return res.status(400).json({
         success: false,
-        message: "Customer ID, product ID and quantity are required",
+        message: "Product ID and quantity are required",
         data: null,
       });
     }
@@ -73,7 +73,7 @@ exports.createPurchase = async (req, res) => {
 
     // Check if the user exists
 
-    const user = await User.findById(userId).session(session);
+    const user = await User.findById(req.user._id).session(session);
     if (!user) {
       await session.abortTransaction();
 
@@ -96,7 +96,7 @@ exports.createPurchase = async (req, res) => {
     // Create the purchase
 
     const purchase = new Purchase({
-      user: user._id,
+      user: req.user._id,
       product: productId,
       productName: product.name,
       quantity,

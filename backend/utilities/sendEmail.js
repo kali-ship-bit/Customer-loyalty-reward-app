@@ -1,16 +1,20 @@
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+const {Resend} = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASSWORD,
+//   },
+// });
 
 const sendVerificationEmail = async (email, firstName, code) => {
-  const mailOptions = {
-    from: `"Customer Loyalty App" <${process.env.EMAIL_USER}>`,
+  const { data, error } = await resend.emails.send({
+    from: "Customer Loyalty App <onboarding@resend.dev>",
     to: email,
     subject: "Verify Your Customer Loyalty Account",
 
@@ -51,9 +55,12 @@ const sendVerificationEmail = async (email, firstName, code) => {
             </div>
         </div>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
+  if (error) {
+    console.error("Resend email error:", error);
+    throw new Error(error.message || "Unable to send verification email");
+  }
+  return data;
 };
 
 module.exports = sendVerificationEmail;

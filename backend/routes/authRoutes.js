@@ -18,9 +18,9 @@ const router = express.Router();
 
 router.post('/createUser', authController.createUser);
 
-router.post('/verifyEmail', authController.verifyEmail);
+// router.post('/verifyEmail', authController.verifyEmail);
 
-router.post('/resendVerificationCode', authController.resendVerificationCode);
+// router.post('/resendVerificationCode', authController.resendVerificationCode);
 
 router.post('/loginUser', authController.loginUser);
 

@@ -17,6 +17,14 @@ exports.createPurchase = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
+    if (!mongoose.isValidObjectId(productId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+        data: null,
+      });
+    }
+
     // Check required fields
     if (!productId || quantity === undefined) {
       return res.status(400).json({
@@ -108,10 +116,12 @@ exports.createPurchase = async (req, res) => {
     // Reduce the product quantity in stock
     product.quantity -= quantity;
 
+    // Automatically mark the product unavailable when stock runs out.
+    // Do not mark it as manually deactivated.
     if (product.quantity === 0) {
       product.isAvailable = false;
+      product.isManuallyDeactivated = false;
     }
-
     // Add new points to the user's points balance
     if (
       user.totalPointsEarned === undefined ||
@@ -164,12 +174,18 @@ exports.createPurchase = async (req, res) => {
     }
 
     await session.commitTransaction();
-
-    await Notification.create({
-      user: user._id,
-      title: "Purchase successful!",
-      body: `You earned ${pointsEarned} points from your purchase of ${product.name}.`,
-    });
+    try {
+      await Notification.create({
+        user: user._id,
+        title: "Purchase successful!",
+        body: `You earned ${pointsEarned} points from your purchase of ${product.name}.`,
+      });
+    } catch (notificationError) {
+      console.error(
+        "Purchase completed, but notification creation failed:",
+        notificationError.message,
+      );
+    }
 
     return res.status(201).json({
       success: true,

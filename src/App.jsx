@@ -11,7 +11,7 @@ import { NotificationsFeed } from "./components/notifications/NotificationsFeed"
 
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
-import { VerifyEmail } from "./components/auth/verifyEmail";
+// import { VerifyEmail } from "./components/auth/verifyEmail";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ForgotPassword from "./components/auth/ForgotPassword";
 
@@ -39,7 +39,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
+      {/* <Route path="/verify-email" element={<VerifyEmail />} /> */}
 
       <Route path="/forgot-password" element={<ForgotPassword />} />
 

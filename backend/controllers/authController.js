@@ -78,9 +78,9 @@ exports.createUser = async (req, res) => {
 
     // Generate verification code
 
-    const verificationCode = generateVerificationCode();
-    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000);
-    const verificationSentAt = new Date();
+    // const verificationCode = generateVerificationCode();
+    // const verificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+    // const verificationSentAt = new Date();
 
     const user = await User.create({
       firstName,
@@ -89,27 +89,27 @@ exports.createUser = async (req, res) => {
       password: hashedPassword,
       phone,
       role: "USER",
-      isActive: false,
+      isActive: true,
       isEmailVerified: false,
-      emailVerificationCode: verificationCode,
-      emailVerificationExpires: verificationExpires,
-      emailVerificationSentAt: verificationSentAt,
+      // emailVerificationCode: verificationCode,
+      // emailVerificationExpires: verificationExpires,
+      // emailVerificationSentAt: verificationSentAt,
       referredBy,
     });
 
-    try {
-      await sendVerificationEmail(user.email, user.firstName, verificationCode);
-    } catch (error) {
-      await User.findByIdAndDelete(user._id);
+    // try {
+    //   await sendVerificationEmail(user.email, user.firstName, verificationCode);
+    // } catch (error) {
+    //   await User.findByIdAndDelete(user._id);
 
-      return res.status(500).json({
-        success: false,
-        message:
-          "Account could not be created because verification email failed",
-        error: "Unable to send verification email",
-        data: null,
-      });
-    }
+    //   return res.status(500).json({
+    //     success: false,
+    //     message:
+    //       "Account could not be created because verification email failed",
+    //     error: "Unable to send verification email",
+    //     data: null,
+    //   });
+    // }
 
     res.status(201).json({
       success: true,
@@ -127,8 +127,8 @@ exports.createUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Verification email failed:", error);
-    
+    // console.error("Verification email failed:", error);
+
     res.status(500).json({
       success: false,
       message: "Error creating user",
@@ -138,158 +138,158 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// VERIFY EMAIL
-exports.verifyEmail = async (req, res) => {
-  try {
-    const { email, code } = req.body;
+// // VERIFY EMAIL
+// exports.verifyEmail = async (req, res) => {
+//   try {
+//     const { email, code } = req.body;
 
-    if (!email || !code) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and verification code are required",
-        data: null,
-      });
-    }
+//     if (!email || !code) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email and verification code are required",
+//         data: null,
+//       });
+//     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+//     const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email: normalizedEmail }).select(
-      "+emailVerificationCode +emailVerificationExpires",
-    );
+//     const user = await User.findOne({ email: normalizedEmail }).select(
+//       "+emailVerificationCode +emailVerificationExpires",
+//     );
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-        data: null,
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//         data: null,
+//       });
+//     }
 
-    if (user.isEmailVerified) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is already verified",
-        data: null,
-      });
-    }
+//     if (user.isEmailVerified) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email is already verified",
+//         data: null,
+//       });
+//     }
 
-    if (
-      !user.emailVerificationExpires ||
-      user.emailVerificationExpires < new Date()
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Verification code has expired",
-        data: null,
-      });
-    }
+//     if (
+//       !user.emailVerificationExpires ||
+//       user.emailVerificationExpires < new Date()
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Verification code has expired",
+//         data: null,
+//       });
+//     }
 
-    if (user.emailVerificationCode !== code) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid verification code",
-        data: null,
-      });
-    }
+//     if (user.emailVerificationCode !== code) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid verification code",
+//         data: null,
+//       });
+//     }
 
-    user.isEmailVerified = true;
-    user.isActive = true;
+//     user.isEmailVerified = true;
+//     user.isActive = true;
 
-    user.emailVerificationCode = undefined;
-    user.emailVerificationExpires = undefined;
-    user.emailVerificationSentAt = undefined;
+//     user.emailVerificationCode = undefined;
+//     user.emailVerificationExpires = undefined;
+//     user.emailVerificationSentAt = undefined;
 
-    await user.save();
+//     await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Email verified successfully. Your account is now active.",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Unable to verify email",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "Email verified successfully. Your account is now active.",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Unable to verify email",
+//     });
+//   }
+// };
 
-// RESEND VERIFICATION CODE
-exports.resendVerificationCode = async (req, res) => {
-  try {
-    const { email } = req.body;
+// // RESEND VERIFICATION CODE
+// exports.resendVerificationCode = async (req, res) => {
+//   try {
+//     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required",
-        data: null,
-      });
-    }
+//     if (!email) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email is required",
+//         data: null,
+//       });
+//     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+//     const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email: normalizedEmail }).select(
-      "+emailVerificationCode +emailVerificationExpires +emailVerificationSentAt",
-    );
+//     const user = await User.findOne({ email: normalizedEmail }).select(
+//       "+emailVerificationCode +emailVerificationExpires +emailVerificationSentAt",
+//     );
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-        data: null,
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//         data: null,
+//       });
+//     }
 
-    if (user.isEmailVerified) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is already verified",
-        data: null,
-      });
-    }
+//     if (user.isEmailVerified) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email is already verified",
+//         data: null,
+//       });
+//     }
 
-    if (user.emailVerificationSentAt) {
-      const secondsSinceLastSent =
-        (Date.now() - user.emailVerificationSentAt.getTime()) / 1000;
+//     if (user.emailVerificationSentAt) {
+//       const secondsSinceLastSent =
+//         (Date.now() - user.emailVerificationSentAt.getTime()) / 1000;
 
-      if (secondsSinceLastSent < 60) {
-        const secondsRemaining = Math.ceil(60 - secondsSinceLastSent);
+//       if (secondsSinceLastSent < 60) {
+//         const secondsRemaining = Math.ceil(60 - secondsSinceLastSent);
 
-        return res.status(429).json({
-          success: false,
-          message: `Please wait ${secondsRemaining} seconds before requesting another verification code`,
-          data: null,
-        });
-      }
-    }
+//         return res.status(429).json({
+//           success: false,
+//           message: `Please wait ${secondsRemaining} seconds before requesting another verification code`,
+//           data: null,
+//         });
+//       }
+//     }
 
-    const verificationCode = generateVerificationCode();
+//     const verificationCode = generateVerificationCode();
 
-    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+//     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-    const verificationSentAt = new Date();
+//     const verificationSentAt = new Date();
 
-    user.emailVerificationCode = verificationCode;
-    user.emailVerificationExpires = verificationExpires;
-    user.emailVerificationSentAt = verificationSentAt;
+//     user.emailVerificationCode = verificationCode;
+//     user.emailVerificationExpires = verificationExpires;
+//     user.emailVerificationSentAt = verificationSentAt;
 
-    await user.save();
+//     await user.save();
 
-    await sendVerificationEmail(user.email, user.firstName, verificationCode);
+//     await sendVerificationEmail(user.email, user.firstName, verificationCode);
 
-    res.status(200).json({
-      success: true,
-      message: "A new verification code has been sent to your email.",
-      data: null,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Unable to resend verification code",
-      data: null,
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "A new verification code has been sent to your email.",
+//       data: null,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Unable to resend verification code",
+//       data: null,
+//     });
+//   }
+// };
 
 // LOGIN
 exports.loginUser = async (req, res) => {
@@ -331,13 +331,13 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    if (!user.isEmailVerified) {
-      return res.status(403).json({
-        success: false,
-        message: "Please verify your email before logging in",
-        data: null,
-      });
-    }
+    // if (!user.isEmailVerified) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Please verify your email before logging in",
+    //     data: null,
+    //   });
+    // }
 
     if (!user.isActive) {
       return res.status(403).json({
@@ -584,61 +584,107 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { firstName, lastName, phone } = req.body;
-
     const user = req.user;
 
-    if (firstName !== undefined) {
-      user.firstName = firstName;
-    }
+    
+if (
+  firstName === undefined &&
+  lastName === undefined &&
+  phone === undefined
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Provide at least one field to update",
+    data: null,
+  });
+}
 
-    if (lastName !== undefined) {
-      user.lastName = lastName;
-    }
-
-    if (phone !== undefined) {
-      const normalizedPhone = phone.trim();
-
-      const existingPhone = await User.findOne({
-        phone,
-        _id: { $ne: user._id },
-      });
-
-      if (existingPhone) {
-        return res.status(409).json({
-          success: false,
-          message: "Phone number is already in use",
-          data: null,
-        });
-      }
-
-      user.phone = normalizedPhone;
-    }
-
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: {
-        user: {
-          id: user._id.toString(),
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-          pointsBalance: user.pointsBalance,
-        },
-      },
+if (firstName !== undefined) {
+  if (typeof firstName !== "string" || !firstName.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "First name must be a non-empty string",
+      data: null,
     });
+  }
+
+  user.firstName = firstName.trim();
+}
+
+if (lastName !== undefined) {
+  if (typeof lastName !== "string" || !lastName.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Last name must be a non-empty string",
+      data: null,
+    });
+  }
+
+  user.lastName = lastName.trim();
+}
+
+if (phone !== undefined) {
+  if (typeof phone !== "string" || !phone.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Phone number must be a non-empty string",
+      data: null,
+    });
+  }
+
+  const normalizedPhone = phone.trim();
+
+  const existingPhone = await User.findOne({
+    phone: normalizedPhone,
+    _id: { $ne: user._id },
+  });
+
+  if (existingPhone) {
+    return res.status(409).json({
+      success: false,
+      message: "Phone number is already in use",
+      data: null,
+    });
+  }
+
+  user.phone = normalizedPhone;
+}
+
+await user.save();
+
+return res.status(200).json({
+  success: true,
+  message: "Profile updated successfully",
+  data: {
+    user: {
+      id: user._id.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      pointsBalance: user.pointsBalance,
+    },
+  },
+});
+;
   } catch (error) {
     console.error("Update profile error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Unable to update profile",
-      data: null,
-    });
+    
+if (error.name === "ValidationError") {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid profile details",
+    data: null,
+  });
+}
+
+return res.status(500).json({
+  success: false,
+  message: "Unable to update profile",
+  data: null,
+});
   }
 };
 

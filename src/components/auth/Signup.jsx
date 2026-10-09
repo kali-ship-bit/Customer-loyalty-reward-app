@@ -52,11 +52,20 @@ export function Signup() {
 
     // Registration is successful, but the backend requires
     // email verification before the user can log in.
-    navigate("/verify-email", {
+    // navigate("/verify-email", {
+    //   replace: true,
+    //   state: { email },
+    // });
+
+    // Registration successful; redirect to login.
+    navigate("/login", {
       replace: true,
-      state: { email },
+      state: {
+        message: "Account created successfully. You can now log in.",
+        email,
+      },
     });
-  };
+  };;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background px-5 py-10">

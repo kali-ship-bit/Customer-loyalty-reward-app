@@ -43,6 +43,11 @@ const productSchema = new mongoose.Schema(
             default: true,
         },
 
+        isManuallyDeactivated: {
+            type: Boolean,
+            default: false,
+        },
+
     },
     {
         timestamps: true,

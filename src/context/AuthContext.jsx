@@ -161,6 +161,9 @@ export function AuthProvider({ children }) {
         error: null,
       };
     } catch (error) {
+      localStorage.removeItem("token");
+      setUser(null);
+
       return {
         data: null,
         error: {

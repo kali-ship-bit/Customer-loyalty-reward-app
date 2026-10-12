@@ -28,7 +28,24 @@ router.post('/forgotPassword', authController.forgotPassword);
 
 router.post('/resetPassword', authController.resetPassword);
 
-router.patch( "/uploadProfilePhoto", protect, upload.single("profilePhoto"), authController.uploadProfilePhoto);
+// router.patch( "/uploadProfilePhoto", protect, upload.single("profilePhoto"), authController.uploadProfilePhoto);
+
+router.patch(
+  "/uploadProfilePhoto",
+  protect,
+  (req, res, next) => {
+    console.log("Upload route reached");
+    next();
+  },
+  upload.single("profilePhoto"),
+  (req, res, next) => {
+    console.log("Content-Type:", req.headers["content-type"]);
+    console.log("Uploaded file:", req.file);
+    console.log("Request body:", req.body);
+    next();
+  },
+  authController.uploadProfilePhoto
+);
 
 router.get('/getUser', protect, authController.getUser);
 

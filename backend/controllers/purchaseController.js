@@ -12,6 +12,7 @@ const Notification = require("../models/notificationModel");
 
 // Create a new purchase
 exports.createPurchase = async (req, res) => {
+  const requestStartedAt = Date.now();
   const session = await mongoose.startSession();
 
   try {
@@ -42,6 +43,8 @@ exports.createPurchase = async (req, res) => {
         data: null,
       });
     }
+
+    console.log(`[createPurchase] Validation completed in ${Date.now() - requestStartedAt}ms`);
 
     session.startTransaction();
 
@@ -173,7 +176,13 @@ exports.createPurchase = async (req, res) => {
       await referralBonusPoint.save({ session });
     }
 
+    console.log(
+  `[createPurchase] Database operations before commit: ${Date.now() - requestStartedAt}ms`,
+    );
     await session.commitTransaction();
+    console.log(
+  `[createPurchase] Transaction committed in ${Date.now() - requestStartedAt}ms`,
+    );
     try {
       await Notification.create({
         user: user._id,
@@ -186,6 +195,10 @@ exports.createPurchase = async (req, res) => {
         notificationError.message,
       );
     }
+
+    console.log(
+      `[createPurchase] Total processing time: ${Date.now() - requestStartedAt}ms`,
+    );
 
     return res.status(201).json({
       success: true,

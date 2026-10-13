@@ -40,8 +40,27 @@ export function Profile() {
     setMessage("");
     setError("");
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file.");
+    const fileName = file.name.toLowerCase();
+
+    const allowedExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif",
+      ".avif",
+      ".heic",
+      ".heif",
+    ];
+
+    const hasAllowedExtension = allowedExtensions.some((extension) =>
+      fileName.endsWith(extension),
+    );
+
+    const hasImageMimeType = file.type.startsWith("image/");
+
+    if (!hasImageMimeType && !hasAllowedExtension) {
+      setError("Please select a supported image file.");
       event.target.value = "";
       return;
     }

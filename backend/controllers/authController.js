@@ -6,6 +6,10 @@ const Notification = require("../models/notificationModel");
 
 const generateToken = require("../utilities/generateToken");
 
+const sharp = require("sharp");
+
+const convert = require("heic-convert");
+
 const cloudinary = require("../config/cloudinary");
 
 const streamifier = require("streamifier");
@@ -13,6 +17,26 @@ const streamifier = require("streamifier");
 const generateVerificationCode = require("../utilities/generateEmailCode");
 
 const sendVerificationEmail = require("../utilities/sendEmail");
+
+const path = require("path");
+
+const uploadImageToCloudinary = (buffer) =>
+  new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "customer-loyalty/profile-photos",
+        resource_type: "image",
+        format: "jpg",
+      },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      },
+    );
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
 
 // Create new user
 exports.createUser = async (req, res) => {
@@ -832,47 +856,61 @@ exports.uploadProfilePhoto = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Please select an image",
+        message: "Please select an image.",
         data: null,
       });
     }
 
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: "customer-loyalty/profile-photos",
-        resource_type: "image",
+    const originalName = req.file.originalname || "";
+    const extension = path.extname(originalName).toLowerCase();
+    const mimeType = (req.file.mimetype || "").toLowerCase();
+
+    const isHeic =
+      [".heic", ".heif"].includes(extension) ||
+      [
+        "image/heic",
+        "image/heif",
+        "image/heic-sequence",
+        "image/heif-sequence",
+      ].includes(mimeType);
+
+    let imageBuffer = req.file.buffer;
+
+    // Convert HEIC/HEIF to JPEG first.
+    if (isHeic) {
+      imageBuffer = await convert({
+        buffer: imageBuffer,
+        format: "JPEG",
+        quality: 0.9,
+      });
+    }
+
+    // Decode and normalize the image to JPEG.
+    // rotate() respects the photo's orientation metadata.
+    const processedImage = await sharp(imageBuffer)
+      .rotate()
+      .jpeg({ quality: 85 })
+      .toBuffer();
+
+    const result = await uploadImageToCloudinary(processedImage);
+
+    req.user.profilePhoto = result.secure_url;
+    await req.user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile photo uploaded successfully.",
+      data: {
+        profilePhoto: result.secure_url,
       },
-      async (error, result) => {
-        if (error) {
-          console.error("Cloudinary upload error:", error);
-
-          return res.status(500).json({
-            success: false,
-            message: "Unable to upload profile photo",
-            data: null,
-          });
-        }
-
-        req.user.profilePhoto = result.secure_url;
-        await req.user.save();
-
-        return res.status(200).json({
-          success: true,
-          message: "Profile photo uploaded successfully",
-          data: {
-            profilePhoto: result.secure_url,
-          },
-        });
-      },
-    );
-
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    });
   } catch (error) {
     console.error("Upload profile photo error:", error);
 
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
-      message: "Unable to upload profile photo",
+      message:
+        "Unable to process this image. Please try a valid JPG, PNG, WebP, GIF, AVIF, HEIC, or HEIF image.",
       data: null,
     });
   }

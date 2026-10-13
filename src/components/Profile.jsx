@@ -1,3 +1,4 @@
+import apiClient from "../lib/apiClient";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,11 +42,14 @@ export function Profile() {
 
     if (!file.type.startsWith("image/")) {
       setError("Please select an image file.");
+      event.target.value = "";
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be 5MB or smaller.");
+    // Allow images up to 10 MB.
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image must be 10 MB or smaller.");
+      event.target.value = "";
       return;
     }
 
@@ -61,35 +65,20 @@ export function Profile() {
       const uploadData = new FormData();
       uploadData.append("profilePhoto", file);
 
-      const response = await fetch(
-        `${API_URL}/auth/uploadProfilePhoto`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: uploadData,
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to upload profile photo."
-        );
-      }
+      await apiClient("/auth/uploadProfilePhoto", {
+        method: "PATCH",
+        body: uploadData,
+      });
 
       setMessage("Profile photo updated successfully.");
 
-      // Reload the page so the new Cloudinary image is displayed.
+      // Refresh the profile data displayed by the application.
       window.location.reload();
     } catch (uploadError) {
-      setError(
-        uploadError.message || "Failed to upload profile photo."
-      );
+      setError(uploadError.message || "Failed to upload profile photo.");
     } finally {
       setUploadingPhoto(false);
+      event.target.value = "";
     }
   };
 

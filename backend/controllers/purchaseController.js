@@ -13,6 +13,9 @@ const Notification = require("../models/notificationModel");
 // Create a new purchase
 exports.createPurchase = async (req, res) => {
   const requestStartedAt = Date.now();
+  const logPurchaseTiming = (label, startedAt) => {
+    console.log(`[createPurchase] ${label}: ${Date.now() - startedAt}ms`);
+  };
   const session = await mongoose.startSession();
 
   try {
@@ -44,12 +47,15 @@ exports.createPurchase = async (req, res) => {
       });
     }
 
-    console.log(`[createPurchase] Validation completed in ${Date.now() - requestStartedAt}ms`);
-
+    console.log(
+      `[createPurchase] Validation completed in ${Date.now() - requestStartedAt}ms`,
+    );
     session.startTransaction();
 
     // Find the product by ID
+    operationStartedAt = Date.now();
     const product = await Product.findById(productId).session(session);
+    logPurchaseTiming("Find product", operationStartedAt);
 
     if (!product) {
       await session.abortTransaction();
@@ -83,8 +89,9 @@ exports.createPurchase = async (req, res) => {
     }
 
     // Check if the user exists
-
+    let operationStartedAt = Date.now();
     const user = await User.findById(req.user._id).session(session);
+    logPurchaseTiming("Find product", operationStartedAt);
     if (!user) {
       await session.abortTransaction();
 
@@ -95,9 +102,11 @@ exports.createPurchase = async (req, res) => {
       });
     }
 
+    operationStartedAt = Date.now();
     const isFirstPurchase = !(await Purchase.exists({
       user: user._id,
     }).session(session));
+    logPurchaseTiming("Check first purchase", operationStartedAt);
 
     // Calculate the total price and points earned
 
@@ -168,20 +177,40 @@ exports.createPurchase = async (req, res) => {
       purchase: purchase._id,
     });
 
+    // await purchase.save({ session });
+    // await product.save({ session });
+    // await user.save({ session });
+    // await point.save({ session });
+    // if (referralBonusPoint) {
+    //   await referralBonusPoint.save({ session });
+    operationStartedAt = Date.now();
     await purchase.save({ session });
+    logPurchaseTiming("Save purchase", operationStartedAt);
+
+    operationStartedAt = Date.now();
     await product.save({ session });
+    logPurchaseTiming("Save product", operationStartedAt);
+
+    operationStartedAt = Date.now();
     await user.save({ session });
+    logPurchaseTiming("Save user", operationStartedAt);
+
+    operationStartedAt = Date.now();
     await point.save({ session });
+    logPurchaseTiming("Save points transaction", operationStartedAt);
+
     if (referralBonusPoint) {
+      operationStartedAt = Date.now();
       await referralBonusPoint.save({ session });
+      logPurchaseTiming("Save referral bonus", operationStartedAt);
     }
 
     console.log(
-  `[createPurchase] Database operations before commit: ${Date.now() - requestStartedAt}ms`,
+      `[createPurchase] Database operations before commit: ${Date.now() - requestStartedAt}ms`,
     );
     await session.commitTransaction();
     console.log(
-  `[createPurchase] Transaction committed in ${Date.now() - requestStartedAt}ms`,
+      `[createPurchase] Transaction committed in ${Date.now() - requestStartedAt}ms`,
     );
     try {
       await Notification.create({

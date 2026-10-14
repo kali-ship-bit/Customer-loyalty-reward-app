@@ -100,7 +100,6 @@ Customer-loyalty-reward-app/
 ├── README.md
 └── vite.config.js
 
-*The structure above is an overview. Actual directories may differ as the project evolves.*
 
 ## ⚙️ Getting Started
 
@@ -134,10 +133,15 @@ Create a `.env` file inside the `backend/` directory.
 Configure the variables required by your backend. For example:
 
 ```env
-PORT=3000
-FRONTEND_URL=http://localhost:5173
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+PORT = 3000
+FRONTEND_URL=https://customer-loyalty-reward-app-frontend.onrender.com
+MONGODB_URI = 
+JWT_SECRET = 
+EMAIL_USER = 
+EMAIL_PASSWORD = 
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 Your application may require additional variables depending on its enabled integrations. Check the backend configuration before starting the server.
@@ -232,9 +236,9 @@ This project was developed collaboratively as part of the TS Academy full-stack 
 * Rebecca Woryi
 * Godwin Divine
 * Kenneth Goddy-natus
-* Qudus
-* Ayobami
-* Bambam
+* Qudus Olayemi Shittu
+* Godwin Ayobami
+* Inioluwa Olaposi
 
 ## 📌 Future Improvements
 

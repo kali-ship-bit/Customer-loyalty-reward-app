@@ -54,7 +54,9 @@ exports.createPurchase = async (req, res) => {
     console.log(
       `[createPurchase] Validation completed in ${Date.now() - requestStartedAt}ms`,
     );
+    operationStartedAt = Date.now();
     session.startTransaction();
+    logPurchaseTiming("Start transaction", operationStartedAt);
 
     // Find the product by ID
     operationStartedAt = Date.now();
@@ -222,7 +224,9 @@ exports.createPurchase = async (req, res) => {
         title: "Purchase successful!",
         body: `You earned ${pointsEarned} points from your purchase of ${product.name}.`,
       });
+      logPurchaseTiming("Create notification", operationStartedAt);
     } catch (notificationError) {
+      logPurchaseTiming("Create notification failed", operationStartedAt);
       console.error(
         "Purchase completed, but notification creation failed:",
         notificationError.message,

@@ -16,6 +16,8 @@ exports.createPurchase = async (req, res) => {
   const logPurchaseTiming = (label, startedAt) => {
     console.log(`[createPurchase] ${label}: ${Date.now() - startedAt}ms`);
   };
+
+  let operationStartedAt;
   const session = await mongoose.startSession();
 
   try {
@@ -91,7 +93,7 @@ exports.createPurchase = async (req, res) => {
     // Check if the user exists
     let operationStartedAt = Date.now();
     const user = await User.findById(req.user._id).session(session);
-    logPurchaseTiming("Find product", operationStartedAt);
+    logPurchaseTiming("Find user", operationStartedAt);
     if (!user) {
       await session.abortTransaction();
 

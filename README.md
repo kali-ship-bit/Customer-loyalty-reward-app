@@ -74,7 +74,7 @@ The application features a React frontend and a Node.js/Express backend connecte
 * MongoDB Atlas
 * Git and GitHub
 
-## 📁 ## Project Structure
+## 📁 Project Structure
 
 ```text
 Customer-loyalty-reward-app/

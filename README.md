@@ -77,6 +77,7 @@ The application features a React frontend and a Node.js/Express backend connecte
 ## 📁 Project Structure
 
 Customer-loyalty-reward-app/
+│
 ├── backend/
 │   ├── config/
 │   ├── controllers/
@@ -86,17 +87,25 @@ Customer-loyalty-reward-app/
 │   ├── utilities/
 │   ├── app.js
 │   └── package.json
-├── src/
-│   ├── config/
-│   ├── config/
-│   ├── config/
-│   ├── config/
-│   ├── config/
-│   ├── config/
-│   ├── config/
+│
+├── src/                          # Frontend source code
+│   ├── components/
+│   ├── context/
+│   ├── data/
+│   ├── icons/
+│   ├── lib/
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+│
+├── docs/                         # Project documentation
+│   ├── API_DOCUMENTATION.md
+│   └── TESTING_REPORT.md
+│
 ├── .gitignore
 ├── index.html
 ├── package.json
+├── package-lock.json
 ├── README.md
 └── vite.config.js
 

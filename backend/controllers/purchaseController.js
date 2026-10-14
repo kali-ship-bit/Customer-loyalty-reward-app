@@ -12,14 +12,6 @@ const Notification = require("../models/notificationModel");
 
 // Create a new purchase
 exports.createPurchase = async (req, res) => {
-  const requestStartedAt = Date.now();
-
-  const logPurchaseTiming = (label, startedAt) => {
-    console.log(`[createPurchase] ${label}: ${Date.now() - startedAt}ms`);
-  };
-
-  let operationStartedAt;
-
   const session = await mongoose.startSession();
 
   try {
@@ -51,17 +43,10 @@ exports.createPurchase = async (req, res) => {
       });
     }
 
-    console.log(
-      `[createPurchase] Validation completed in ${Date.now() - requestStartedAt}ms`,
-    );
-    operationStartedAt = Date.now();
     session.startTransaction();
-    logPurchaseTiming("Start transaction", operationStartedAt);
 
     // Find the product by ID
-    operationStartedAt = Date.now();
     const product = await Product.findById(productId).session(session);
-    logPurchaseTiming("Find product", operationStartedAt);
 
     if (!product) {
       await session.abortTransaction();
@@ -95,9 +80,7 @@ exports.createPurchase = async (req, res) => {
     }
 
     // Check if the user exists
-    operationStartedAt = Date.now();
     const user = await User.findById(req.user._id).session(session);
-    logPurchaseTiming("Find user", operationStartedAt);
     if (!user) {
       await session.abortTransaction();
 
@@ -108,11 +91,9 @@ exports.createPurchase = async (req, res) => {
       });
     }
 
-    operationStartedAt = Date.now();
     const isFirstPurchase = !(await Purchase.exists({
       user: user._id,
     }).session(session));
-    logPurchaseTiming("Check first purchase", operationStartedAt);
 
     // Calculate the total price and points earned
 
@@ -183,59 +164,26 @@ exports.createPurchase = async (req, res) => {
       purchase: purchase._id,
     });
 
-    // await purchase.save({ session });
-    // await product.save({ session });
-    // await user.save({ session });
-    // await point.save({ session });
-    // if (referralBonusPoint) {
-    //   await referralBonusPoint.save({ session });
-    operationStartedAt = Date.now();
     await purchase.save({ session });
-    logPurchaseTiming("Save purchase", operationStartedAt);
-
-    operationStartedAt = Date.now();
     await product.save({ session });
-    logPurchaseTiming("Save product", operationStartedAt);
-
-    operationStartedAt = Date.now();
     await user.save({ session });
-    logPurchaseTiming("Save user", operationStartedAt);
-
-    operationStartedAt = Date.now();
     await point.save({ session });
-    logPurchaseTiming("Save points transaction", operationStartedAt);
-
     if (referralBonusPoint) {
-      operationStartedAt = Date.now();
       await referralBonusPoint.save({ session });
-      logPurchaseTiming("Save referral bonus", operationStartedAt);
     }
-
-    console.log(
-      `[createPurchase] Database operations before commit: ${Date.now() - requestStartedAt}ms`,
-    );
     await session.commitTransaction();
-    console.log(
-      `[createPurchase] Transaction committed in ${Date.now() - requestStartedAt}ms`,
-    );
     try {
       await Notification.create({
         user: user._id,
         title: "Purchase successful!",
         body: `You earned ${pointsEarned} points from your purchase of ${product.name}.`,
       });
-      logPurchaseTiming("Create notification", operationStartedAt);
     } catch (notificationError) {
-      logPurchaseTiming("Create notification failed", operationStartedAt);
       console.error(
         "Purchase completed, but notification creation failed:",
         notificationError.message,
       );
     }
-
-    console.log(
-      `[createPurchase] Total processing time: ${Date.now() - requestStartedAt}ms`,
-    );
 
     return res.status(201).json({
       success: true,

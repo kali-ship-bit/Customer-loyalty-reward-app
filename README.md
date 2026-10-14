@@ -74,10 +74,10 @@ The application features a React frontend and a Node.js/Express backend connecte
 * MongoDB Atlas
 * Git and GitHub
 
-## 📁 Project Structure
+## 📁 ## Project Structure
 
+```text
 Customer-loyalty-reward-app/
-│
 ├── backend/
 │   ├── config/
 │   ├── controllers/
@@ -87,27 +87,22 @@ Customer-loyalty-reward-app/
 │   ├── utilities/
 │   ├── app.js
 │   └── package.json
-│
-├── src/                          # Frontend source code
+├── docs/
+│   ├── API_DOCUMENTATION.md
+│   └── TESTING_REPORT.md
+├── src/
 │   ├── components/
 │   ├── context/
-│   ├── data/
 │   ├── icons/
 │   ├── lib/
 │   ├── App.jsx
-│   ├── index.css
 │   └── main.jsx
-│
-├── docs/                         # Project documentation
-│   ├── API_DOCUMENTATION.md
-│   └── TESTING_REPORT.md
-│
-├── .gitignore
+├── .env
 ├── index.html
 ├── package.json
-├── package-lock.json
-├── README.md
-└── vite.config.js
+└── README.md
+```
+
 
 
 ## ⚙️ Getting Started

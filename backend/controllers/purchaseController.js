@@ -13,11 +13,13 @@ const Notification = require("../models/notificationModel");
 // Create a new purchase
 exports.createPurchase = async (req, res) => {
   const requestStartedAt = Date.now();
+
   const logPurchaseTiming = (label, startedAt) => {
     console.log(`[createPurchase] ${label}: ${Date.now() - startedAt}ms`);
   };
 
   let operationStartedAt;
+
   const session = await mongoose.startSession();
 
   try {
@@ -91,7 +93,7 @@ exports.createPurchase = async (req, res) => {
     }
 
     // Check if the user exists
-    let operationStartedAt = Date.now();
+    operationStartedAt = Date.now();
     const user = await User.findById(req.user._id).session(session);
     logPurchaseTiming("Find user", operationStartedAt);
     if (!user) {

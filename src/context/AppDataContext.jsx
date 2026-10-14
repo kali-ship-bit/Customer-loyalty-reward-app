@@ -363,6 +363,28 @@ export function AppDataProvider({ children }) {
     }
   }, []);
 
+  const deleteReadNotifications = useCallback(async () => {
+    try {
+      const result = await apiClient("/notifications/deleteReadNotifications", {
+        method: "DELETE",
+      });
+
+      setNotifications((currentNotifications) =>
+        currentNotifications.filter((notification) => !notification.isRead),
+      );
+
+      return {
+        data: result.data,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error,
+      };
+    }
+  }, []);
+
   const isFavorite = useCallback(
     (productId) => {
       return favorites.some((product) => product._id === productId);
@@ -429,6 +451,7 @@ export function AppDataProvider({ children }) {
     notifications,
     markNotificationRead,
     markAllNotificationsRead,
+    deleteReadNotifications,
 
     useVoucher: async () => ({
       error: new Error("Vouchers are not part of this MVP"),

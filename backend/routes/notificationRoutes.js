@@ -15,4 +15,6 @@ router.patch("/markAllNotificationsRead", protect, notificationController.markAl
 // Mark one notification as read
 router.patch("/markNotificationRead/:id", protect, notificationController.markNotificationRead);
 
+router.delete("/deleteReadNotifications", protect, notificationController.deleteReadNotifications,);
+
 module.exports = router;

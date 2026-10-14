@@ -13,7 +13,7 @@ router.post('/createProduct', protect, authorize('ADMIN'), productController.cre
 
 router.get('/getAllProducts', protect, authorize('USER', 'ADMIN'), productController.getAllProducts);
 
-router.get('/getProduct/:id', protect, productController.getProduct);
+router.get('/getProduct/:id', protect, authorize('USER', 'ADMIN'), productController.getProduct);
 
 router.patch('/updateProduct/:id', protect, authorize('ADMIN'), productController.updateProduct);
 

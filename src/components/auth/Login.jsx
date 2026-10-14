@@ -1,20 +1,28 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { Link, useNavigate} from "react-router-dom";
+// import { Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export function Login() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+
+  // const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(location.state?.email || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.message || "",
+  );
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setSubmitting(true);
     const { error } = await signIn({ email, password });
     setSubmitting(false);
@@ -86,6 +94,15 @@ export function Login() {
           {error && (
             <p className="text-sm font-semibold text-primary bg-primary/10 rounded-xl px-4 py-3">
               {error}
+            </p>
+          )}
+
+          {successMessage && (
+            <p
+              role="status"
+              className="text-sm font-semibold text-green-700 bg-green-100 rounded-xl px-4 py-3"
+            >
+              {successMessage}
             </p>
           )}
 

@@ -6,12 +6,13 @@ import { Products } from "./components/products";
 import { Wallet } from "./components/Wallet";
 import { Profile } from "./components/Profile";
 import { Sidebar } from "./components/Sidebar";
+import { ScrollControls } from "./components/Scroll";
 import { PurchaseHistory } from "./components/PurchaseHistory";
 import { NotificationsFeed } from "./components/notifications/NotificationsFeed";
 
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
-import { VerifyEmail } from "./components/auth/verifyEmail";
+// import { VerifyEmail } from "./components/auth/verifyEmail";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ForgotPassword from "./components/auth/ForgotPassword";
 
@@ -27,9 +28,11 @@ function AppShell({ children }) {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
 
-      <div className="relative mx-auto w-full max-w-[1200px] flex-1">
+      <div className="relative mx-auto w-full max-w-[1200px] min-w-0 flex-1">
         {children}
       </div>
+
+      <ScrollControls />
     </div>
   );
 }
@@ -39,7 +42,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
+      {/* <Route path="/verify-email" element={<VerifyEmail />} /> */}
 
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -52,9 +55,14 @@ export default function App() {
             </AppShell>
           }
         />
-
-        <Route path="/products" element={<Products />} />
-
+        <Route
+          path="/products"
+          element={
+            <AppShell>
+              <Products />
+            </AppShell>
+          }
+        />
         <Route
           path="/rewards"
           element={
@@ -63,7 +71,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/purchase-history"
           element={
@@ -72,7 +79,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/wallet"
           element={
@@ -81,7 +87,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile"
           element={
@@ -90,7 +95,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/notifications"
           element={
@@ -99,7 +103,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile/personal-information"
           element={
@@ -108,7 +111,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile/payment-methods"
           element={
@@ -117,7 +119,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile/notifications"
           element={
@@ -126,7 +127,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile/privacy-security"
           element={
@@ -135,7 +135,6 @@ export default function App() {
             </AppShell>
           }
         />
-
         <Route
           path="/profile/help-support"
           element={

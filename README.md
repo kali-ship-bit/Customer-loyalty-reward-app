@@ -1,187 +1,260 @@
-# LoyaltyApp - Customer Rewards
+# Customer Loyalty App
 
-A customer loyalty web app. Customers sign up, verify their email, buy products to earn points, and redeem those points for rewards.
+A full-stack customer loyalty and rewards application built to help customers earn points through purchases, track their loyalty balances, explore rewards, and redeem accumulated points.
 
-## Features
-- Sign up with email verification, login, forgot and reset password
-- Browse products, mark favorites, and buy products to earn points
-- Points earned = product points x quantity
-- Referral bonus: when a referred customer makes a first purchase, the referrer gets 100 points
-- Rewards catalogue with featured rewards and point redemption
-- Wallet, points history, purchase history and notifications
-- Profile page with photo upload (Cloudinary) and account settings
+The application features a React frontend and a Node.js/Express backend connected to MongoDB, with authentication and role-based access for customers and administrators.
 
-## Tech Stack
-- Frontend: React, Vite, Tailwind CSS, DaisyUI, React Router
-- Backend: Node.js, Express, MongoDB (Mongoose), JWT, bcrypt, Nodemailer, Cloudinary
+## 🚀 Live Demo
 
-## Project Structure
-- `src/` - React frontend
-- `backend/` - Express API (controllers, models, routes, middleware)
+* **Frontend:** https://customer-loyalty-reward-app-frontend.onrender.com
+* **Backend API:** https://customer-loyalty-reward-app-uldx.onrender.com
+* **GitHub Repository:** https://github.com/kali-ship-bit/Customer-loyalty-reward-app
 
-## Run Locally
-You need Node.js, a MongoDB database (Atlas or a replica set, because purchases and redemptions use transactions), a Cloudinary account and an email account for sending codes.
+## ✨ Features
 
-### 1. Backend
-Open a terminal in the `backend` folder and run:
+### Authentication and User Management
 
-    npm install
+* User registration and login.
+* Password hashing and JWT-based authentication.
+* User profile management.
+* Role-based access control for customers and administrators.
 
-Create a file called `backend/.env` with these values:
+### Product Management
 
-    MONGODB_URI=your_mongodb_connection_string
-    JWT_SECRET=your_secret
-    JWT_EXPIRES_IN=7d
-    EMAIL_USER=your_email
-    EMAIL_PASSWORD=your_email_app_password
-    CLOUDINARY_CLOUD_NAME=your_cloud_name
-    CLOUDINARY_API_KEY=your_key
-    CLOUDINARY_API_SECRET=your_secret
-    PORT=3000
+* Create, view, update, and manage products.
+* Track product prices and stock quantities.
+* Manage product availability.
+* Browse available products.
 
-Start it with `npm run dev`. The API runs on http://localhost:3000
+### Purchases and Loyalty Points
 
-### 2. Frontend
-In the project root folder run:
+* Record customer purchases.
+* Calculate loyalty points earned from purchases.
+* Update product stock after successful purchases.
+* Track points balances and transaction history.
 
-    npm install
+### Rewards and Redemption
 
-Create a file called `.env` with:
+* Browse available rewards.
+* Redeem rewards using accumulated points.
+* Validate points balances and reward availability.
+* Record reward redemption transactions.
 
-    VITE_API_URL=http://localhost:3000/api
+### Additional Features
 
-Start it with `npm run dev` and open http://localhost:5173
+* Favorites management.
+* Notifications.
+* Responsive user interface.
+* Input validation and error handling.
 
-## Roles
-Signup always creates a `USER`. An `ADMIN` account is created by changing the role in the database. The app has no admin page yet, so admin actions are done through the API.
+## 🛠️ Technology Stack
 
-## Run Locally
-You need Node.js, a MongoDB database (Atlas or a replica set, because purchases and redemptions use transactions), a Cloudinary account and an email account for sending codes.
+### Frontend
 
-### 1. Backend
-Open a terminal in the `backend` folder and run:
+* React
+* Vite
+* JavaScript
+* Tailwind CSS
+* DaisyUI
 
-    npm install
+### Backend
 
-Create a file called `backend/.env` with these values:
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JSON Web Tokens (JWT)
+* bcryptjs
+* Helmet
+* CORS
 
-    MONGODB_URI=your_mongodb_connection_string
-    JWT_SECRET=your_secret
-    JWT_EXPIRES_IN=7d
-    EMAIL_USER=your_email
-    EMAIL_PASSWORD=your_email_app_password
-    CLOUDINARY_CLOUD_NAME=your_cloud_name
-    CLOUDINARY_API_KEY=your_key
-    CLOUDINARY_API_SECRET=your_secret
-    PORT=3000
+### Deployment and Development Tools
 
-Start it with `npm run dev`. The API runs on http://localhost:3000
+* Render
+* MongoDB Atlas
+* Git and GitHub
 
-### 2. Frontend
-In the project root folder run:
+## 📁 Project Structure
 
-    npm install
+Customer-loyalty-reward-app/
+│
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── utilities/
+│   ├── app.js
+│   └── package.json
+│
+├── src/                          # Frontend source code
+│   ├── components/
+│   ├── context/
+│   ├── data/
+│   ├── icons/
+│   ├── lib/
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+│
+├── docs/                         # Project documentation
+│   ├── API_DOCUMENTATION.md
+│   └── TESTING_REPORT.md
+│
+├── .gitignore
+├── index.html
+├── package.json
+├── package-lock.json
+├── README.md
+└── vite.config.js
 
-Create a file called `.env` with:
 
-    VITE_API_URL=http://localhost:3000/api
+## ⚙️ Getting Started
 
-Start it with `npm run dev` and open http://localhost:5173
+### Prerequisites
 
-## Roles
-Signup always creates a `USER`. An `ADMIN` account is created by changing the role in the database. The app has no admin page yet, so admin actions are done through the API.
+Install the following:
 
-## API Documentation
-Base URL: `/api`. Protected routes need the header `Authorization: Bearer <token>`. The token comes from login.
+* [Node.js](https://nodejs.org/)
+* npm, included with Node.js
+* A MongoDB Atlas account or another compatible MongoDB instance
+* Git
 
-### Auth - /api/auth
-| Method | Endpoint | Access |
-|---|---|---|
-| POST | /createUser | Public |
-| POST | /verifyEmail (email, code) | Public |
-| POST | /resendVerificationCode (email) | Public |
-| POST | /loginUser (email, password) | Public |
-| POST | /forgotPassword (email) | Public |
-| POST | /resetPassword (email, code, newPassword) | Public |
-| GET | /getUser | Logged in |
-| PATCH | /updateUser (firstName, lastName, phone) | Logged in |
-| PATCH | /changePassword (currentPassword, newPassword) | Logged in |
-| PATCH | /uploadProfilePhoto (file: profilePhoto) | Logged in |
-| PATCH | /deactivateAccount | User |
-| GET | /getAllUsers | Admin |
-| PATCH | /deactivateUser/:id and /activateUser/:id | Admin |
+### 1. Clone the Repository
 
-### Products - /api/products
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | /getAllProducts and /getProduct/:id | Logged in |
-| POST | /createProduct (name, size, description, price, quantity, points) | Admin |
-| PATCH | /updateProduct/:id, /deactivateProduct/:id, /reactivateProduct/:id | Admin |
-| DELETE | /deleteProduct/:id | Admin |
+```bash
+git clone https://github.com/kali-ship-bit/Customer-loyalty-reward-app.git
+cd Customer-loyalty-reward-app
+```
 
-## API Documentation
-Base URL: `/api`. Protected routes need the header `Authorization: Bearer <token>`. The token comes from login.
+### 2. Configure the Backend
 
-### Auth - /api/auth
-| Method | Endpoint | Access |
-|---|---|---|
-| POST | /createUser | Public |
-| POST | /verifyEmail (email, code) | Public |
-| POST | /resendVerificationCode (email) | Public |
-| POST | /loginUser (email, password) | Public |
-| POST | /forgotPassword (email) | Public |
-| POST | /resetPassword (email, code, newPassword) | Public |
-| GET | /getUser | Logged in |
-| PATCH | /updateUser (firstName, lastName, phone) | Logged in |
-| PATCH | /changePassword (currentPassword, newPassword) | Logged in |
-| PATCH | /uploadProfilePhoto (file: profilePhoto) | Logged in |
-| PATCH | /deactivateAccount | User |
-| GET | /getAllUsers | Admin |
-| PATCH | /deactivateUser/:id and /activateUser/:id | Admin |
+Navigate to the backend directory and install dependencies:
 
-### Products - /api/products
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | /getAllProducts and /getProduct/:id | Logged in |
-| POST | /createProduct (name, size, description, price, quantity, points) | Admin |
-| PATCH | /updateProduct/:id, /deactivateProduct/:id, /reactivateProduct/:id | Admin |
-| DELETE | /deleteProduct/:id | Admin |
+```bash
+cd backend
+npm install
+```
 
-### Purchases - /api/purchases
-| Method | Endpoint | Access |
-|---|---|---|
-| POST | /createPurchase (productId, quantity) | User |
-| GET | /getMyPurchaseHistory | User |
-| GET | /getPurchaseById/:id | User, Admin |
-| GET | /getAllPurchaseHistory and /getCustomerPurchaseHistory/:id | Admin |
+Create a `.env` file inside the `backend/` directory.
 
-### Points - /api/points
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | /getMyPointsHistory | User |
-| GET | /getAllPointsHistory | Admin |
+Configure the variables required by your backend. For example:
 
-### Rewards - /api/rewards
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | /getRewards, /featured, /getMyRedemptionHistory | User |
-| POST | /redeemReward (rewardId) | User |
-| POST | /createReward (name, description, pointsRequired, quantity, featured) | Admin |
-| GET | /getAllRewards and /getAllRedemptionHistory | Admin |
-| PATCH | /deactivateReward/:id, /reactivateReward/:id, /toggleFeatured/:id | Admin |
+```env
+PORT = 3000
+FRONTEND_URL=https://customer-loyalty-reward-app-frontend.onrender.com
+MONGODB_URI = 
+JWT_SECRET = 
+EMAIL_USER = 
+EMAIL_PASSWORD = 
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
 
-### Favorites - /api/favorites
-| Method | Endpoint | Access |
-|---|---|---|
-| GET | / | User |
-| POST and DELETE | /:productId | User |
+Your application may require additional variables depending on its enabled integrations. Check the backend configuration before starting the server.
 
-## Project Status
-- Done: customer frontend, backend API, authentication, points, purchases, rewards, favorites
-- Not built: admin dashboard
+Start the backend using the appropriate script from `backend/package.json`. For example:
 
-## Team
-- Member name - what they built
-- Member name - what they built
-- Member name - what they built
+```bash
+npm run dev
+```
 
+### 3. Configure the Frontend
+
+Open a second terminal and return to the project root:
+
+```bash
+cd Customer-loyalty-reward-app
+npm install
+```
+
+Create a `.env` file in the frontend root:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+This assumes the frontend uses `VITE_API_URL` as its API base URL and appends endpoint paths without duplicating `/api`.
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+Open the local URL provided by Vite, typically:
+
+```text
+http://localhost:5173
+```
+
+### Environment Variable Security
+
+Never commit `.env` files, database credentials, JWT secrets, or API keys to GitHub. Keep local environment files excluded through `.gitignore`.
+
+## 🌐 API Overview
+
+The backend exposes API routes under the `/api` prefix.
+
+Route groups include:
+
+| Route                | Purpose                            |
+| -------------------- | ---------------------------------- |
+| `/api/auth`          | Authentication and user management |
+| `/api/products`      | Product management                 |
+| `/api/purchases`     | Purchase records                   |
+| `/api/points`        | Loyalty points and transactions    |
+| `/api/rewards`       | Rewards and redemption             |
+| `/api/favorites`     | Favorites management               |
+| `/api/notifications` | Notifications                      |
+
+For endpoint details, including HTTP methods, authentication requirements, request bodies, and response formats, consult the project's API documentation if available.
+
+## 🧪 Testing
+
+The application has undergone manual testing of its main user flows, including:
+
+* User registration and login.
+* Dashboard and product loading.
+* Purchases and points updates.
+* Reward redemption.
+* Input validation and role restrictions.
+
+Automated test coverage should be documented separately once tests have been implemented and executed.
+
+## 🔐 Security
+
+Security measures used by the application include:
+
+* Password hashing.
+* JWT-based authentication.
+* Protected routes and role-based authorization.
+* Environment variables for sensitive configuration.
+* CORS configuration.
+* Request validation and error handling.
+
+Security configurations should be reviewed and tested as the application evolves.
+
+## 👥 Contributors
+
+This project was developed collaboratively as part of the TS Academy full-stack capstone project.
+
+* Ajube Tamaradiepreye Daniella
+* Rebecca Woryi
+* Godwin Divine
+* Kenneth Goddy-natus
+* Qudus Olayemi Shittu
+* Godwin Ayobami
+* Inioluwa Olaposi
+
+## 📌 Future Improvements
+
+Potential improvements include:
+
+* Automated frontend and backend tests.
+* Expanded API documentation.
+* Performance monitoring and optimization.
+* Improved loading states and user feedback.
+* Additional accessibility and security testing.

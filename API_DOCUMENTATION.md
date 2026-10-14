@@ -1,1443 +1,231 @@
-# Customer Loyalty App API Documentation
+## 🌐 API Documentation
 
-## 1. Overview
+The Customer Loyalty App backend provides REST API endpoints for authentication, user management, products, purchases, loyalty points, rewards, favorites, and notifications.
 
-The Customer Loyalty App API provides endpoints for user authentication, account management, product management, purchases, loyalty points, rewards, and reward redemption.
+The API uses JWT-based authentication for protected endpoints and role-based authorization for administrative operations.
 
-### Base URL
+**Production API Base URL:**
+https://customer-loyalty-reward-app-uldx.onrender.com/api
 
-**Production backend:**
+For detailed endpoint documentation, including HTTP methods, access requirements, request bodies, response formats, and error handling, see the [API Documentation](./API_DOCUMENTATION.md).
 
-`https://customer-loyalty-reward-app-uldx.onrender.com`
+### Main API Routes
 
-API routes are mounted under `/api`.
+| Route                | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `/api/auth`          | Authentication and user management     |
+| `/api/products`      | Product management                     |
+| `/api/purchases`     | Purchase records and purchase history  |
+| `/api/points`        | Loyalty points and transaction history |
+| `/api/rewards`       | Rewards and redemption                 |
+| `/api/favorites`     | Favorite products                      |
+| `/api/notifications` | User notifications                     |
 
-For example, the login endpoint is:
 
-`POST /api/auth/loginUser`
+### Technologies
 
-### Authentication
-
-Protected endpoints require authentication through the application's authentication middleware.
-
-* **Public:** No authentication required.
-* **USER:** Authenticated users with the USER role.
-* **ADMIN:** Authenticated administrators with the ADMIN role.
-* **USER / ADMIN:** Either authorized role may access the endpoint.
-
-The exact authentication header format should be confirmed against the implementation of `authMiddleware.js`.
-
----
-
-## 2. Authentication and User Management
-
-**Route prefix:** `/api/auth`
-
-| Method | Endpoint              | Access             | Description                                    |
-| ------ | --------------------- | ------------------ | ---------------------------------------------- |
-| POST   | `/createUser`         | Public             | Register a new user.                           |
-| POST   | `/loginUser`          | Public             | Authenticate a user and log in.                |
-| POST   | `/forgotPassword`     | Public             | Initiate the password-reset process.           |
-| POST   | `/resetPassword`      | Public             | Reset a user's password.                       |
-| PATCH  | `/uploadProfilePhoto` | Authenticated user | Upload a profile photo.                        |
-| GET    | `/getUser`            | Authenticated user | Retrieve the authenticated user's information. |
-| GET    | `/getAllUsers`        | ADMIN              | Retrieve user records.                         |
-| PATCH  | `/updateUser`         | Authenticated user | Update user information.                       |
-| PATCH  | `/changePassword`     | Authenticated user | Change the authenticated user's password.      |
-| PATCH  | `/deactivateAccount`  | USER               | Deactivate the authenticated user's account.   |
-| PATCH  | `/deactivateUser/:id` | ADMIN              | Deactivate a user by ID.                       |
-| PATCH  | `/activateUser/:id`   | ADMIN              | Activate a user by ID.                         |
-
-### Email Verification
-
-The following routes are currently commented out in the supplied route file and are therefore not registered:
-
-* `POST /api/auth/verifyEmail`
-* `POST /api/auth/resendVerificationCode`
-
-### Profile Photo Upload
-
-The `uploadProfilePhoto` endpoint expects a multipart form-data upload using the field name `profilePhoto`.
+* Node.js
+* Express.js
+* MongoDB Atlas
+* Mongoose
+* JSON Web Tokens (JWT)
+* bcryptjs
+* Cloudinary for profile photo uploads
 
 ---
 
-## 3. Product Management
+## 2. Authentication and Authorization
 
-**Route prefix:** `/api/products`
+Most API endpoints require authentication using a JWT access token.
 
-| Method | Endpoint                 | Access       | Description               |
-| ------ | ------------------------ | ------------ | ------------------------- |
-| POST   | `/createProduct`         | ADMIN        | Create a product.         |
-| GET    | `/getAllProducts`        | USER / ADMIN | Retrieve products.        |
-| GET    | `/getProduct/:id`        | USER / ADMIN | Retrieve a product by ID. |
-| PATCH  | `/updateProduct/:id`     | ADMIN        | Update a product.         |
-| PATCH  | `/deactivateProduct/:id` | ADMIN        | Deactivate a product.     |
-| PATCH  | `/reactivateProduct/:id` | ADMIN        | Reactivate a product.     |
-| DELETE | `/deleteProduct/:id`     | ADMIN        | Delete a product.         |
+Include the token in the request header:
 
----
+`Authorization: Bearer <your_token>`
 
-## 4. Purchase Management
+### User roles
 
-**Route prefix:** `/api/purchases`
+| Role  | Permissions                                                                                                                                       |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| USER  | Manage own account, view available products, purchase products, earn points, redeem rewards, manage favorites, and manage personal notifications. |
+| ADMIN | Manage products and rewards, view users and purchase histories, and access administrative records.                                                |
 
-All routes in this group require authentication.
+An authenticated user can access only the resources permitted by their role and the endpoint's ownership checks.
 
-| Method | Endpoint                          | Access       | Description                                         |
-| ------ | --------------------------------- | ------------ | --------------------------------------------------- |
-| POST   | `/createPurchase`                 | USER         | Create a purchase.                                  |
-| GET    | `/getMyPurchaseHistory`           | USER         | Retrieve the authenticated user's purchase history. |
-| GET    | `/getAllPurchaseHistory`          | ADMIN        | Retrieve purchase history across users.             |
-| GET    | `/getCustomerPurchaseHistory/:id` | ADMIN        | Retrieve a customer's purchase history by user ID.  |
-| GET    | `/getPurchaseById/:id`            | USER / ADMIN | Retrieve a purchase by ID.                          |
+### Common HTTP status codes
 
----
+| Status | Meaning                                          |
+| ------ | ------------------------------------------------ |
+| 200    | Request completed successfully                   |
+| 201    | Resource created successfully                    |
+| 400    | Invalid input or request                         |
+| 401    | Authentication failed or credentials are invalid |
+| 403    | Access denied or account inactive                |
+| 404    | Requested resource not found                     |
+| 409    | Conflict, such as a duplicate resource           |
+| 500    | Internal server error                            |
 
-## 5. Rewards and Redemption
-
-**Route prefix:** `/api/rewards`
-
-| Method | Endpoint                   | Access | Description                                           |
-| ------ | -------------------------- | ------ | ----------------------------------------------------- |
-| POST   | `/createReward`            | ADMIN  | Create a reward.                                      |
-| GET    | `/getRewards`              | USER   | Retrieve available rewards.                           |
-| GET    | `/getAllRewards`           | ADMIN  | Retrieve all rewards.                                 |
-| POST   | `/redeemReward`            | USER   | Redeem a reward using loyalty points.                 |
-| GET    | `/getMyRedemptionHistory`  | USER   | Retrieve the authenticated user's redemption history. |
-| GET    | `/getAllRedemptionHistory` | ADMIN  | Retrieve redemption history across users.             |
-| PATCH  | `/deactivateReward/:id`    | ADMIN  | Deactivate a reward.                                  |
-| PATCH  | `/reactivateReward/:id`    | ADMIN  | Reactivate a reward.                                  |
-| PATCH  | `/toggleFeatured/:id`      | ADMIN  | Toggle a reward's featured status.                    |
-| GET    | `/featured`                | USER   | Retrieve featured rewards.                            |
+Exact responses depend on the endpoint and the error encountered.
 
 ---
 
-## 6. Request and Response Details
+# 3. Authentication and User Management API
 
-The endpoint tables above document the routes and access restrictions declared in the supplied Express route files.
+**Prefix:** `/api/auth`
 
-Request bodies, query parameters, response examples, and specific error responses should be documented from the corresponding controllers and middleware to ensure accuracy.
+### 3.1 Register a user
 
-## 7. Error Handling
+**Endpoint:** `POST /api/auth/createUser`
 
-The backend provides centralized error handling for requests. Common HTTP status codes that clients may encounter include:
+**Access:** Public
 
-* **200 OK:** Request completed successfully.
-* **201 Created:** A resource was created successfully, where returned by the relevant controller.
-* **400 Bad Request:** The request contains invalid data.
-* **401 Unauthorized:** Authentication is missing or invalid.
-* **403 Forbidden:** The user lacks the required permission.
-* **404 Not Found:** The requested resource or route was not found.
-* **500 Internal Server Error:** An unexpected server error occurred.
+Creates a customer account.
 
-The exact status code and response body for each endpoint depend on its controller implementation.
-
-## 8. Loyalty Points
-
-**Route prefix:** `/api/points`
-
-All endpoints require authentication.
-
-| Method | Endpoint               | Access | Description                                                   |
-| ------ | ---------------------- | ------ | ------------------------------------------------------------- |
-| GET    | `/getMyPointsHistory`  | USER   | Retrieve the authenticated user's points transaction history. |
-| GET    | `/getAllPointsHistory` | ADMIN  | Retrieve points transaction history across users.             |
-
-**Example full endpoint:**
-
-`GET https://customer-loyalty-reward-app-uldx.onrender.com/api/points/getMyPointsHistory`
-
----
-
-## 9. Favorites
-
-**Route prefix:** `/api/favorites`
-
-All endpoints require authentication. These routes are restricted to users with the USER role.
-
-| Method | Endpoint      | Access | Description                                 |
-| ------ | ------------- | ------ | ------------------------------------------- |
-| POST   | `/:productId` | USER   | Add a product to the user's favorites.      |
-| DELETE | `/:productId` | USER   | Remove a product from the user's favorites. |
-| GET    | `/`           | USER   | Retrieve the user's favorite products.      |
-
-**Examples of full endpoints:**
-
-* `POST /api/favorites/PRODUCT_ID`
-* `DELETE /api/favorites/PRODUCT_ID`
-* `GET /api/favorites/`
-
-Replace `PRODUCT_ID` with the actual product ID.
-
----
-
-## 10. Notifications
-
-**Route prefix:** `/api/notifications`
-
-All endpoints require authentication. The supplied routes do not specify an ADMIN-only restriction; access is controlled by the authentication middleware and the notification controller.
-
-| Method | Endpoint                    | Access             | Description                                      |
-| ------ | --------------------------- | ------------------ | ------------------------------------------------ |
-| GET    | `/getMyNotifications`       | Authenticated user | Retrieve the authenticated user's notifications. |
-| PATCH  | `/markAllNotificationsRead` | Authenticated user | Mark all of the user's notifications as read.    |
-| PATCH  | `/markNotificationRead/:id` | Authenticated user | Mark a specific notification as read.            |
-| DELETE | `/deleteReadNotifications`  | Authenticated user | Delete read notifications.                       |
-
-**Example full endpoint:**
-
-`GET https://customer-loyalty-reward-app-uldx.onrender.com/api/notifications/getMyNotifications`
-
----
-
-## 11. Authentication and Authorization Summary
-
-The API uses authentication middleware to protect private routes and role-based authorization middleware to restrict access to specific operations.
-
-* **Public routes:** User registration and login, plus the password-reset routes currently registered in `authRoutes.js`.
-* **USER routes:** User-specific purchases, points history, favorites, rewards, and redemption.
-* **ADMIN routes:** Product and reward management, user administration, and administrative history endpoints.
-* **Authenticated-user routes:** Profile operations and notifications, subject to the controller's own checks.
-
-Protected requests must include the authentication credentials expected by the backend's authentication middleware.
-
----
-
-## 12. Documentation Notes
-
-This document lists routes and access restrictions based on the Express route files provided. It does not yet specify the exact request body, query parameters, response format, or validation rules for each endpoint.
-
-Those details should be added by reviewing the corresponding controllers and middleware.
-
-The password-reset endpoints are currently registered. Confirm that they work correctly before presenting them as supported features in the final submission.
-
-# Purchase API Documentation
-
-## 1. Overview
-
-The Purchase API allows authenticated users to purchase products, earn loyalty points, and view their purchase history. Administrators can review purchases across users and retrieve individual purchase records.
-
-**Production Base URL**
-
-`https://customer-loyalty-reward-app-uldx.onrender.com/api`
-
-**Route prefix:** `/purchases`
-
-All purchase endpoints require authentication.
-
-## 2. Create a Purchase
-
-Creates a purchase for the authenticated user, deducts the purchased quantity from product stock, updates the user's points balance, and records the points transaction.
-
-* **Method:** `POST`
-* **Endpoint:** `/purchases/createPurchase`
-* **Access:** Authenticated USER
-* **Full URL:** `https://customer-loyalty-reward-app-uldx.onrender.com/api/purchases/createPurchase`
-
-### Request Headers
-
-http
-Content-Type: application/json
-Authorization: Bearer YOUR_JWT_TOKEN
-
-The authorization format shown above should be confirmed against the authentication middleware.
-
-### Request Body
-
-{
-  "productId": "PRODUCT_OBJECT_ID",
-  "quantity": 2
-}
-
-| Field       | Type   | Required | Description                                             |
-| ----------- | ------ | -------- | ------------------------------------------------------- |
-| `productId` | String | Yes      | MongoDB ObjectId of the product.                        |
-| `quantity`  | Number | Yes      | Positive integer representing the quantity to purchase. |
-
-The backend calculates the total price and points earned using the product's stored price and points values.
-
-### Successful Response — `201 Created`
-
-{
-  "success": true,
-  "message": "Purchase created successfully",
-  "data": {
-    "purchase": {
-      "_id": "PURCHASE_OBJECT_ID",
-      "user": "USER_OBJECT_ID",
-      "product": "PRODUCT_OBJECT_ID",
-      "productName": "Example Product",
-      "quantity": 2,
-      "pricePerUnit": 10000,
-      "totalPrice": 20000,
-      "pointsEarned": 100,
-      "status": "Completed"
-    },
-    "point": {
-      "_id": "POINT_OBJECT_ID",
-      "user": "USER_OBJECT_ID",
-      "type": "Earned",
-      "points": 100,
-      "description": "Points earned from purchase of Example Product",
-      "purchase": "PURCHASE_OBJECT_ID"
-    },
-    "pointsBalance": 500,
-    "totalPointsEarned": 800,
-    "quantity": 8
-  }
-}
-
-*The values above are illustrative. Actual response fields and generated IDs depend on the database and Mongoose schemas.*
-
-### Business Logic
-
-When a purchase succeeds, the backend:
-
-1. Validates the product ID and purchase quantity.
-2. Checks that the product exists, is available, and has sufficient stock.
-3. Retrieves the authenticated user.
-4. Calculates the total price and points earned.
-5. Creates the purchase record.
-6. Reduces product stock and updates product availability when stock reaches zero.
-7. Updates the user's points balance and total points earned.
-8. Records a points transaction.
-9. Awards a 100-point referral bonus to an eligible referrer on the referred user's first purchase.
-10. Commits the database transaction.
-11. Attempts to create a purchase notification.
-
-Notification creation failure does not reverse a completed purchase.
-
-### Possible Error Responses
-
-| Status | Message                                 | Condition                                      |
-| ------ | --------------------------------------- | ---------------------------------------------- |
-| `400`  | `Invalid product ID`                    | The product ID is invalid.                     |
-| `400`  | `Product ID and quantity are required`  | Required purchase information is missing.      |
-| `400`  | `Quantity must be a positive number`    | Quantity is not a positive integer.            |
-| `400`  | `This product is currently unavailable` | The product is unavailable.                    |
-| `400`  | `Only X item(s) are available`          | Requested quantity exceeds stock.              |
-| `404`  | `Product not found`                     | The product does not exist.                    |
-| `404`  | `User not found`                        | The authenticated user record cannot be found. |
-| `500`  | `Unable to complete purchase`           | An unexpected purchase error occurs.           |
-
-## 3. Get My Purchase History
-
-Retrieves purchase records belonging to the authenticated user, with product details populated.
-
-* **Method:** `GET`
-* **Endpoint:** `/purchases/getMyPurchaseHistory`
-* **Access:** Authenticated USER
-
-### Successful Response — `200 OK`
-
-{
-  "success": true,
-  "message": "Purchases retrieved successfully",
-  "data": {
-    "purchases": []
-  }
-}
-
-The `purchases` array contains the user's purchase records, sorted from newest to oldest. Product information includes the product name, size, description, price, and points.
-
-### Error Response — `500 Internal Server Error`
-
-{
-  "success": false,
-  "message": "Failed to retrieve purchase history",
-  "data": null
-}
-
-## 4. Get All Purchase History
-
-Retrieves purchase records across users. User and product details are populated.
-
-* **Method:** `GET`
-* **Endpoint:** `/purchases/getAllPurchaseHistory`
-* **Access:** ADMIN
-
-### Successful Response — `200 OK`
-
-{
-  "success": true,
-  "message": "Purchases retrieved successfully",
-  "data": []
-}
-
-The `data` array contains purchase records, sorted from newest to oldest.
-
-### Error Response — `500 Internal Server Error`
-
-{
-  "success": false,
-  "message": "Failed to retrieve all purchases",
-  "data": null
-}
-
-## 5. Get a Customer's Purchase History
-
-Retrieves the purchase history for a specific user.
-
-* **Method:** `GET`
-* **Endpoint:** `/purchases/getCustomerPurchaseHistory/:id`
-* **Access:** ADMIN
-
-### Path Parameter
-
-| Parameter | Type   | Description                   |
-| --------- | ------ | ----------------------------- |
-| `id`      | String | MongoDB ObjectId of the user. |
-
-### Example
-
-`GET /api/purchases/getCustomerPurchaseHistory/USER_OBJECT_ID`
-
-### Successful Response — `200 OK`
-
-{
-  "success": true,
-  "message": "Purchase retrieved successfully",
-  "data": {
-    "user": {
-      "id": "USER_OBJECT_ID",
-      "firstName": "Example",
-      "lastName": "Customer",
-      "email": "customer@example.com",
-      "phone": "0000000000",
-      "pointsBalance": 500
-    },
-    "purchases": []
-  }
-}
-
-### Possible Error Responses
-
-* `404 Not Found` — `User not found`
-* `500 Internal Server Error` — `Failed to retrieve purchase`
-
-## 6. Get a Purchase by ID
-
-Retrieves a single purchase by its MongoDB ID. Administrators can retrieve any existing purchase. Ordinary users can retrieve only their own purchases.
-
-* **Method:** `GET`
-* **Endpoint:** `/purchases/getPurchaseById/:id`
-* **Access:** USER or ADMIN
-
-### Path Parameter
-
-| Parameter | Type   | Description                       |
-| --------- | ------ | --------------------------------- |
-| `id`      | String | MongoDB ObjectId of the purchase. |
-
-### Successful Response — `200 OK`
-
-{
-  "success": true,
-  "message": "Purchase retrieved successfully",
-  "data": {
-    "_id": "PURCHASE_OBJECT_ID",
-    "user": {
-      "_id": "USER_OBJECT_ID",
-      "firstName": "Example",
-      "lastName": "Customer",
-      "email": "customer@example.com"
-    },
-    "product": {
-      "_id": "PRODUCT_OBJECT_ID",
-      "name": "Example Product",
-      "size": "Medium",
-      "quantity": 8,
-      "price": 10000,
-      "points": 50
-    }
-  }
-}
-
-*This response is illustrative and omits other possible purchase fields.*
-
-### Possible Error Responses
-
-| Status | Message                                            | Condition                                          |
-| ------ | -------------------------------------------------- | -------------------------------------------------- |
-| `403`  | `You do not have permission to view this purchase` | A USER attempts to access another user's purchase. |
-| `404`  | `Purchase not found`                               | No purchase exists with the specified ID.          |
-| `500`  | `Failed to retrieve purchase`                      | An unexpected error occurs.                        |
-
-## 7. Implementation Notes
-
-* Purchase creation uses a MongoDB session and transaction to coordinate changes to the purchase, product, user, and points records.
-* Purchase creation requires a MongoDB deployment that supports transactions.
-* Product stock and the user's points balance are updated as part of the purchase process.
-* Notifications are created after the purchase transaction commits.
-* Exact schema fields and response details should be verified against the corresponding Mongoose models.
-
-## 5. Loyalty Points API
-
-All endpoints are prefixed with `/api/points` and require authentication.
-
-### 5.1 Get My Points History
-
-Retrieves the authenticated user's points transactions, with associated purchase details where available. Results are sorted from newest to oldest.
-
-* **Endpoint:** `GET /api/points/getMyPointsHistory`
-* **Access:** Authenticated users with the `USER` role
-* **Authentication:** Bearer token required
-* **Request body:** None
-
-**Success response — `200 OK`**
-
-{
-  "success": true,
-  "message": "Your points history retrieved successfully",
-  "data": {
-    "transactions": [
-      {
-        "_id": "POINT_TRANSACTION_ID",
-        "user": "USER_ID",
-        "type": "Earned",
-        "points": 50,
-        "description": "Points earned from purchase of Banana Flavoured ice-cream",
-        "purchase": {
-          "_id": "PURCHASE_ID",
-          "productName": "Banana Flavoured ice-cream",
-          "quantity": 1,
-          "pricePerUnit": 10000,
-          "totalPrice": 10000,
-          "pointsEarned": 50,
-          "status": "Completed"
-        },
-        "createdAt": "2026-10-01T12:00:00.000Z"
-      }
-    ]
-  }
-}
-
-*The response values above are illustrative. Actual fields depend on the Point and Purchase schemas. The `purchase` field may be absent or null when a transaction has no associated purchase.*
-
-**Error response — `500 Internal Server Error`**
-
-{
-  "success": false,
-  "message": "Unable to retrieve points history",
-  "data": null
-}
-
-### 5.2 Get All Points History
-
-Retrieves all points transactions for administrative review. Each transaction includes selected user details and associated purchase information where available. Results are sorted from newest to oldest.
-
-* **Endpoint:** `GET /api/points/getAllPointsHistory`
-* **Access:** Authenticated users with the `ADMIN` role
-* **Authentication:** Bearer token required
-* **Request body:** None
-
-**Success response — `200 OK`**
-
-{
-  "success": true,
-  "message": "All points history retrieved successfully",
-  "data": {
-    "transactions": [
-      {
-        "_id": "POINT_TRANSACTION_ID",
-        "user": {
-          "_id": "USER_ID",
-          "firstName": "Jane",
-          "lastName": "Doe",
-          "email": "jane@example.com"
-        },
-        "type": "Earned",
-        "points": 50,
-        "description": "Points earned from purchase",
-        "purchase": {
-          "_id": "PURCHASE_ID",
-          "productName": "Banana Flavoured ice-cream",
-          "quantity": 1,
-          "pricePerUnit": 10000,
-          "totalPrice": 10000,
-          "pointsEarned": 50,
-          "status": "Completed"
-        },
-        "createdAt": "2026-10-01T12:00:00.000Z"
-      }
-    ]
-  }
-}
-
-*The response values above are illustrative. Actual fields depend on the Point and Purchase schemas.*
-
-**Error response — `500 Internal Server Error`**
-
-{
-  "success": false,
-  "message": "Unable to retrieve points history",
-  "data": null
-}
-
-### Notes
-
-* Users can view only their own points history through the user endpoint.
-* Administrators can view all points transactions through the admin endpoint.
-* Both endpoints return transactions in descending `createdAt` order.
-* These endpoints retrieve transaction history; they do not create, modify, or delete points.
-
-
-## 6. Favorites API
-
-All endpoints are prefixed with `/api/favorites`. Every endpoint requires authentication and is restricted to users with the `USER` role.
-
-### 6.1 Add a Product to Favorites
-
-Adds a product to the authenticated user's favorites.
-
-* **Endpoint:** `POST /api/favorites/:productId`
-* **Access:** Authenticated users with the `USER` role
-* **Authentication:** Bearer token required
-* **Request body:** None
-* **URL parameter:** `productId` — the ID of the product to add.
-
-**Success response — `200 OK`**
-
-{
-  "success": true,
-  "message": "Product added to favorites",
-  "data": {
-    "favoriteProducts": ["PRODUCT_ID"]
-  }
-}
-
-**Possible error responses**
-
-Product not found — `404 Not Found`
-
-{
-  "success": false,
-  "message": "Product not found"
-}
-
-Product already in favorites — `400 Bad Request`
-
-{
-  "success": false,
-  "message": "Product is already in your favorites"
-}
-
-Server error — `500 Internal Server Error`
-
-{
-  "success": false,
-  "message": "Error details"
-}
-
-### 6.2 Remove a Product from Favorites
-
-Removes a product ID from the authenticated user's favorites list.
-
-* **Endpoint:** `DELETE /api/favorites/:productId`
-* **Access:** Authenticated users with the `USER` role
-* **Authentication:** Bearer token required
-* **Request body:** None
-* **URL parameter:** `productId` — the ID of the product to remove.
-
-**Success response — `200 OK`**
-
-{
-  "success": true,
-  "message": "Product removed from favorites",
-  "data": {
-    "favoriteProducts": []
-  }
-}
-
-The example shows an empty favorites list; the actual response contains the user's remaining favorite product IDs.
-
-**Server error — `500 Internal Server Error`**
-
-{
-  "success": false,
-  "message": "Error details"
-}
-
-### 6.3 Get My Favorite Products
-
-Retrieves the authenticated user's favorite products, populated with their product details.
-
-* **Endpoint:** `GET /api/favorites`
-* **Access:** Authenticated users with the `USER` role
-* **Authentication:** Bearer token required
-* **Request body:** None
-
-**Success response — `200 OK`**
-
-{
-  "success": true,
-  "data": {
-    "favoriteProducts": [
-      {
-        "_id": "PRODUCT_ID",
-        "name": "Banana Flavoured ice-cream",
-        "price": 10000,
-        "points": 50
-      }
-    ]
-  }
-}
-
-The product fields shown are illustrative. The actual populated fields depend on the Product schema.
-
-**Server error — `500 Internal Server Error`**
-
-{
-  "success": false,
-  "message": "Error details"
-}
-
-### Notes
-
-* Favorites are stored on the user's document in `favoriteProducts`.
-* Adding an already-favorited product returns a `400 Bad Request`.
-* Removing a product that is not in the favorites list still returns success, provided no server error occurs.
-* These endpoints do not create, update, or delete the product itself.
-
-## 4. Rewards and Redemption API
-
-All endpoints are prefixed with `/api/rewards`. Authentication is required for every endpoint.
-
-### 4.1 Create a Reward
-
-Creates a new reward. Active users are notified about the new reward when notification creation succeeds.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/rewards/createReward`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Request body**
+**Request body:**
 
 ```json
 {
-  "name": "Free Ice Cream",
-  "description": "Redeem points for a free ice cream.",
-  "pointsRequired": 100,
-  "quantity": 20,
-  "featured": false
-}
-```
-
-`featured` is optional and defaults to `false`. The other fields are required. `pointsRequired` must be a positive whole number, `quantity` must be a non-negative whole number, and a reward with no stock cannot be featured.
-
-**Success response — `201 Created`**
-
-```json
-{
-  "success": true,
-  "message": "Reward created successfully",
-  "data": {
-    "reward": {
-      "_id": "REWARD_ID",
-      "name": "Free Ice Cream",
-      "description": "Redeem points for a free ice cream.",
-      "pointsRequired": 100,
-      "quantity": 20,
-      "isAvailable": true,
-      "featured": false
-    }
-  }
-}
-```
-
-**Possible errors**
-
-* `400 Bad Request` — missing or invalid reward details, or attempting to feature a reward with no stock.
-* `409 Conflict` — a reward with the same name already exists.
-* `500 Internal Server Error` — unable to create the reward.
-
-### 4.2 Get Available Rewards
-
-Returns available rewards with stock remaining, sorted by the lowest points requirement first.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/rewards/getRewards`
-* **Access:** `USER`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Available rewards retrieved successfully",
-  "data": {
-    "rewards": []
-  }
-}
-```
-
-### 4.3 Get All Rewards
-
-Returns all rewards, including unavailable rewards, sorted from newest to oldest.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/rewards/getAllRewards`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "All rewards retrieved successfully",
-  "data": {
-    "rewards": []
-  }
-}
-```
-
-### 4.4 Redeem a Reward
-
-Redeems one unit of a reward and deducts the required points from the authenticated user's balance. The operation uses a MongoDB transaction to coordinate the stock update, points deduction, redemption record, and points transaction.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/rewards/redeemReward`
-* **Access:** `USER`
-* **Authentication:** Bearer token required
-
-**Request body**
-
-```json
-{
-  "rewardId": "REWARD_ID"
-}
-```
-
-**Success response — `201 Created`**
-
-```json
-{
-  "success": true,
-  "message": "Reward redeemed successfully",
-  "data": {
-    "redemption": {
-      "_id": "REDEMPTION_ID",
-      "user": "USER_ID",
-      "reward": "REWARD_ID",
-      "pointsUsed": 100,
-      "status": "Completed"
-    },
-    "pointTransaction": {
-      "_id": "POINT_TRANSACTION_ID",
-      "user": "USER_ID",
-      "type": "Redeemed",
-      "points": 100,
-      "description": "Points redeemed for Free Ice Cream"
-    },
-    "reward": "Free Ice Cream",
-    "pointsUsed": 100,
-    "remainingPoints": 250,
-    "remainingRewardQuantity": 19
-  }
-}
-```
-
-The response values are illustrative. The remaining balance and stock depend on the actual transaction.
-
-**Possible errors**
-
-* `400 Bad Request` — missing or invalid reward ID, reward unavailable or out of stock, insufficient points, or invalid redemption details.
-* `404 Not Found` — reward or user not found.
-* `409 Conflict` — a concurrent redemption request conflicts with this transaction.
-* `500 Internal Server Error` — unable to complete the redemption.
-
-When the last unit is redeemed, the reward becomes unavailable and is automatically removed from featured rewards. A notification is attempted after the transaction; notification failure does not undo a successful redemption.
-
-### 4.5 Get My Redemption History
-
-Returns the authenticated user's redemption records, including selected reward details, sorted from newest to oldest.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/rewards/getMyRedemptionHistory`
-* **Access:** `USER`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Your redemption history retrieved successfully",
-  "data": {
-    "redemptions": []
-  }
-}
-```
-
-Each redemption may include populated reward fields such as `name`, `description`, and `pointsRequired`.
-
-### 4.6 Get All Redemption History
-
-Returns redemption records for administrative review, including selected user and reward details, sorted from newest to oldest.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/rewards/getAllRedemptionHistory`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "All redemption history retrieved successfully",
-  "data": {
-    "redemptions": []
-  }
-}
-```
-
-### 4.7 Deactivate a Reward
-
-Marks a reward as unavailable and removes its featured status.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/rewards/deactivateReward/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-Replace `:id` with the reward's MongoDB ID.
-
-**Possible responses**
-
-* `200 OK` — reward deactivated successfully.
-* `400 Bad Request` — invalid reward ID.
-* `404 Not Found` — reward not found.
-* `500 Internal Server Error` — unable to deactivate reward.
-
-### 4.8 Reactivate a Reward
-
-Makes a previously deactivated reward available again, provided it has stock remaining.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/rewards/reactivateReward/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Possible responses**
-
-* `200 OK` — reward reactivated successfully.
-* `400 Bad Request` — invalid reward ID or reward has no stock.
-* `404 Not Found` — reward not found.
-* `500 Internal Server Error` — unable to reactivate reward.
-
-### 4.9 Toggle Featured Reward
-
-Switches a reward's featured status. Only available rewards with stock can be newly featured.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/rewards/toggleFeatured/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer
-
-## 2. Product Management API
-
-All endpoints are prefixed with `/api/products`. Authentication is required for all endpoints.
-
-### 2.1 Create a Product
-
-Creates a new product.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/products/createProduct`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Request body**
-
-```json
-{
-  "name": "Banana Flavoured ice-cream",
-  "size": "Medium",
-  "description": "Creamy banana-flavoured ice cream.",
-  "price": 10000,
-  "quantity": 86,
-  "points": 50
-}
-```
-
-`size` is optional. The other fields are required. Price and points must be non-negative numbers; quantity must be a non-negative integer.
-
-**Success response — `201 Created`**
-
-```json
-{
-  "success": true,
-  "message": "Product created successfully",
-  "data": {
-    "_id": "PRODUCT_ID",
-    "name": "Banana Flavoured ice-cream",
-    "size": "Medium",
-    "description": "Creamy banana-flavoured ice cream.",
-    "price": 10000,
-    "quantity": 86,
-    "points": 50,
-    "isAvailable": true,
-    "isManuallyDeactivated": false
-  }
-}
-```
-
-**Possible errors**
-
-* `400 Bad Request` — required fields are missing, values are invalid, or a product with the same name already exists.
-* `500 Internal Server Error` — unable to create the product.
-
-### 2.2 Get All Products
-
-Retrieves products. The returned results depend on the authenticated user's role.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/products/getAllProducts`
-* **Access:** `USER`, `ADMIN`
-* **Authentication:** Bearer token required
-
-**Behavior**
-
-* `USER`: receives products that are available and have stock remaining.
-* `ADMIN`: receives all products, including unavailable products.
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Products retrieved successfully",
-  "data": []
-}
-```
-
-**Error response — `500 Internal Server Error`**
-
-```json
-{
-  "success": false,
-  "message": "Unable to retrieve products",
-  "data": null
-}
-```
-
-### 2.3 Get a Product by ID
-
-Retrieves a single product by its MongoDB ID.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/products/getProduct/:id`
-* **Access:** `USER`, `ADMIN`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Product retrieved successfully",
-  "data": {
-    "_id": "PRODUCT_ID",
-    "name": "Banana Flavoured ice-cream",
-    "size": "Medium",
-    "description": "Creamy banana-flavoured ice cream.",
-    "price": 10000,
-    "quantity": 86,
-    "points": 50,
-    "isAvailable": true,
-    "isManuallyDeactivated": false
-  }
-}
-```
-
-**Possible errors**
-
-* `404 Not Found` — product not found.
-* `500 Internal Server Error` — unable to retrieve the product.
-
-### 2.4 Update a Product
-
-Updates the supplied product fields. Only fields included in the request body are changed.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/products/updateProduct/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Example request body**
-
-```json
-{
-  "price": 12000,
-  "quantity": 75,
-  "points": 60
-}
-```
-
-**Possible errors**
-
-* `400 Bad Request` — invalid price, quantity, or points.
-* `404 Not Found` — product not found.
-* `409 Conflict` — another product already uses the requested name.
-* `500 Internal Server Error` — unable to update the product.
-
-When quantity becomes zero, the product is marked unavailable. If quantity increases above zero, it becomes available again unless it was manually deactivated.
-
-### 2.5 Deactivate a Product
-
-Manually marks a product as unavailable.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/products/deactivateProduct/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Possible responses**
-
-* `200 OK` — product deactivated successfully.
-* `404 Not Found` — product not found.
-* `500 Internal Server Error` — unable to deactivate the product.
-
-### 2.6 Reactivate a Product
-
-Makes a previously deactivated product available again, provided stock remains.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/products/reactivateProduct/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Possible responses**
-
-* `200 OK` — product activated successfully.
-* `400 Bad Request` — product has no stock.
-* `404 Not Found` — product not found.
-* `500 Internal Server Error` — unable to activate the product.
-
-### 2.7 Delete a Product
-
-Permanently deletes a product record.
-
-* **Method:** `DELETE`
-* **Endpoint:** `/api/products/deleteProduct/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Product deleted successfully",
-  "data": null
-}
-```
-
-**Possible errors**
-
-* `404 Not Found` — product not found.
-* `500 Internal Server Error` — unable to delete the product.
-
-# Authentication and User Management API
-
-All endpoints are prefixed with `/api/auth`.
-
-Endpoints marked **Protected** require a valid JWT in the request header:
-
-`Authorization: Bearer <token>`
-
-## 1. Create a User
-
-Registers a new customer account.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/auth/createUser`
-* **Access:** Public
-
-### Request body
-
-```json
-{
-  "firstName": "Jane",
+  "firstName": "John",
   "lastName": "Doe",
-  "email": "jane@example.com",
+  "email": "john@example.com",
   "phone": "08012345678",
   "password": "SecurePass123",
   "referralCode": "ABC123"
 }
 ```
 
-`referralCode` is optional. If supplied, it must belong to an existing user.
+`referralCode` is optional.
 
-### Success response — `201 Created`
+**Successful response:** `201 Created`
 
-```json
-{
-  "success": true,
-  "message": "Account created successfully",
-  "data": {
-    "id": "USER_ID",
-    "firstName": "Jane",
-    "lastName": "Doe",
-    "email": "jane@example.com",
-    "phone": "08012345678",
-    "role": "USER",
-    "isActive": true,
-    "isEmailVerified": false,
-    "pointsBalance": 0
-  }
-}
-```
+Returns the user's account information, including the user ID, name, email, phone number, role, account status, email verification status, and points balance.
 
-### Possible errors
+**Possible errors:**
 
-* `400 Bad Request` — required fields are missing or the referral code is invalid.
-* `409 Conflict` — the email address or phone number is already registered.
-* `500 Internal Server Error` — user creation failed.
+* `400` — Required fields are missing or invalid.
+* `409` — Email address or phone number is already registered.
+* `500` — Account creation failed.
 
-**Note:** Email verification is not currently performed during registration. The account is created as active, but `isEmailVerified` remains `false`.
+**Note:** Email verification endpoints are currently commented out in the backend routes. Registration should not be documented as requiring a completed email verification step.
 
-## 2. Log In
+### 3.2 Log in
 
-Authenticates a user and returns a JWT.
+**Endpoint:** `POST /api/auth/loginUser`
 
-* **Method:** `POST`
-* **Endpoint:** `/api/auth/loginUser`
-* **Access:** Public
+**Access:** Public
 
-### Request body
+**Request body:**
 
 ```json
 {
-  "email": "jane@example.com",
+  "email": "john@example.com",
   "password": "SecurePass123"
 }
 ```
 
-### Success response — `200 OK`
+**Successful response:** `200 OK`
+
+Returns a JWT token and basic user information.
+
+**Possible errors:**
+
+* `400` — Required credentials are missing.
+* `401` — Invalid email or password.
+* `403` — Account is inactive.
+* `500` — Login failed.
+
+### 3.3 Request a password reset
+
+**Endpoint:** `POST /api/auth/forgotPassword`
+
+**Access:** Public
+
+**Request body:**
 
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "JWT_TOKEN",
-    "user": {
-      "id": "USER_ID",
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com",
-      "phone": "08012345678",
-      "role": "USER",
-      "isActive": true,
-      "isEmailVerified": false,
-      "pointsBalance": 0
-    }
-  }
+  "email": "john@example.com"
 }
 ```
 
-### Possible errors
+Requests a password-reset code. The code expires after 10 minutes.
 
-* `400 Bad Request` — email or password is missing.
-* `401 Unauthorized` — email or password is incorrect.
-* `403 Forbidden` — the account is inactive.
-* `500 Internal Server Error` — login failed.
+The endpoint returns a generic success response even when an account is not found, helping to prevent account enumeration.
 
-On successful login, the API also creates a welcome-back notification.
+### 3.4 Reset a password
 
-## 3. Request a Password Reset
+**Endpoint:** `POST /api/auth/resetPassword`
 
-Generates a password-reset code and sends it to the registered email address.
+**Access:** Public
 
-* **Method:** `POST`
-* **Endpoint:** `/api/auth/forgotPassword`
-* **Access:** Public
-
-### Request body
+**Request body:**
 
 ```json
 {
-  "email": "jane@example.com"
-}
-```
-
-### Success response — `200 OK`
-
-```json
-{
-  "success": true,
-  "message": "If an account exists with this email, a password reset code has been sent.",
-  "data": null
-}
-```
-
-The same response is returned when the email address is not registered, helping prevent account discovery.
-
-The reset code expires after **10 minutes**.
-
-### Possible errors
-
-* `400 Bad Request` — email is missing.
-* `500 Internal Server Error` — the reset request could not be processed or the email could not be sent.
-
-## 4. Reset Password
-
-Changes a user's password using a valid reset code.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/auth/resetPassword`
-* **Access:** Public
-
-### Request body
-
-```json
-{
-  "email": "jane@example.com",
+  "email": "john@example.com",
   "code": "123456",
   "newPassword": "NewSecurePass123"
 }
 ```
 
-The new password must contain at least six characters.
+**Successful response:** `200 OK`
 
-### Success response — `200 OK`
+The password is updated, and the reset code is cleared.
 
-```json
-{
-  "success": true,
-  "message": "Password reset successfully. You can now log in.",
-  "data": null
-}
-```
+**Possible errors:**
 
-The reset code is cleared after successful use.
+* `400` — Missing fields, invalid or expired code, or password validation failure.
+* `404` — Account not found, where applicable.
+* `500` — Password reset failed.
 
-### Possible errors
+### 3.5 Get the current user's profile
 
-* `400 Bad Request` — required fields are missing, the new password is too short, or the reset code is invalid or expired.
-* `500 Internal Server Error` — password reset failed.
+**Endpoint:** `GET /api/auth/getUser`
 
-## 5. Get Current User Profile
+**Access:** Authenticated user
 
-Retrieves the authenticated user's profile.
+Returns the authenticated user's profile, including account information, role, points balance, total points earned, email verification status, profile photo, and referral code.
 
-* **Method:** `GET`
-* **Endpoint:** `/api/auth/getUser`
-* **Access:** Protected
+### 3.6 Get all users
 
-### Success response — `200 OK`
+**Endpoint:** `GET /api/auth/getAllUsers`
 
-```json
-{
-  "success": true,
-  "message": "User retrieved successfully",
-  "data": {
-    "user": {
-      "id": "USER_ID",
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com",
-      "phone": "08012345678",
-      "role": "USER",
-      "pointsBalance": 0,
-      "totalPointsEarned": 0,
-      "isEmailVerified": false,
-      "profilePhoto": "",
-      "referralCode": "ABC123"
-    }
-  }
-}
-```
+**Access:** ADMIN
 
-## 6. Get All Users
+Returns the registered users without exposing their password hashes.
 
-Retrieves user records for administration.
+### 3.7 Update a user profile
 
-* **Method:** `GET`
-* **Endpoint:** `/api/auth/getAllUsers`
-* **Access:** `ADMIN`
-* **Authentication:** Protected
+**Endpoint:** `PATCH /api/auth/updateUser`
 
-### Success response — `200 OK`
+**Access:** Authenticated user
+
+Updates permitted profile fields.
+
+**Request body:**
 
 ```json
 {
-  "success": true,
-  "message": "Users retrieved successfully",
-  "data": {
-    "users": []
-  }
-}
-```
-
-### Possible errors
-
-* `401 Unauthorized` — authentication is missing or invalid.
-* `403 Forbidden` — the authenticated user does not have the required role.
-* `500 Internal Server Error` — users could not be retrieved.
-
-Password and selected email-verification fields are excluded from the query response.
-
-## 7. Update User Profile
-
-Updates the authenticated user's first name, last name, or phone number.
-
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/updateUser`
-* **Access:** Protected
-
-### Request body
-
-At least one supported field must be provided.
-
-```json
-{
-  "firstName": "Jane",
+  "firstName": "John",
   "lastName": "Smith",
   "phone": "08098765432"
 }
 ```
 
-### Success response — `200 OK`
+Only the fields being changed need to be included.
 
-```json
-{
-  "success": true,
-  "message": "Profile updated successfully",
-  "data": {
-    "user": {
-      "id": "USER_ID",
-      "firstName": "Jane",
-      "lastName": "Smith",
-      "email": "jane@example.com",
-      "phone": "08098765432",
-      "role": "USER",
-      "pointsBalance": 0
-    }
-  }
-}
-```
+**Possible errors:**
 
-### Possible errors
+* `400` — Invalid fields or no valid update provided.
+* `409` — Phone number already in use.
+* `500` — Update failed.
 
-* `400 Bad Request` — no supported field was supplied or a field is invalid.
-* `409 Conflict` — the phone number is already in use.
-* `500 Internal Server Error` — profile update failed.
+### 3.8 Change password
 
-## 8. Change Password
+**Endpoint:** `PATCH /api/auth/changePassword`
 
-Changes the password for an authenticated user who knows their current password.
+**Access:** Authenticated user
 
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/changePassword`
-* **Access:** Protected
-
-### Request body
+**Request body:**
 
 ```json
 {
@@ -1446,407 +234,623 @@ Changes the password for an authenticated user who knows their current password.
 }
 ```
 
-The new password must be at least six characters and must differ from the current password.
+The current password must be correct, the new password must meet the minimum length requirement, and the new password must differ from the current password.
 
-### Success response — `200 OK`
+### 3.9 Deactivate the current user's account
+
+**Endpoint:** `PATCH /api/auth/deactivateAccount`
+
+**Access:** USER
+
+Deactivates the authenticated user's account by setting `isActive` to `false`.
+
+### 3.10 Deactivate another user
+
+**Endpoint:** `PATCH /api/auth/deactivateUser/:id`
+
+**Access:** ADMIN
+
+Deactivates the user identified by `:id`.
+
+### 3.11 Reactivate a user
+
+**Endpoint:** `PATCH /api/auth/activateUser/:id`
+
+**Access:** ADMIN
+
+Reactivates the specified user account.
+
+### 3.12 Upload a profile photo
+
+**Endpoint:** `PATCH /api/auth/uploadProfilePhoto`
+
+**Access:** Authenticated user
+
+Uses `multipart/form-data`.
+
+**File field:** `profilePhoto`
+
+The uploaded image is stored using Cloudinary, and the resulting secure URL is saved to the user's profile.
+
+---
+
+# 4. Product Management API
+
+**Prefix:** `/api/products`
+
+### Product fields
+
+| Field                   | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `name`                  | Product name                                     |
+| `size`                  | Optional product size                            |
+| `description`           | Product description                              |
+| `price`                 | Product price                                    |
+| `quantity`              | Available stock                                  |
+| `points`                | Loyalty points awarded per unit                  |
+| `isAvailable`           | Whether the product is available                 |
+| `isManuallyDeactivated` | Whether an administrator manually deactivated it |
+
+### 4.1 Create a product
+
+**Endpoint:** `POST /api/products/createProduct`
+
+**Access:** ADMIN
+
+**Request body:**
 
 ```json
 {
-  "success": true,
-  "message": "Password changed successfully",
-  "data": null
+  "name": "Banana Flavoured Ice-Cream",
+  "size": "Medium",
+  "description": "Creamy banana-flavoured ice-cream.",
+  "price": 10000,
+  "quantity": 100,
+  "points": 50
 }
 ```
 
-### Possible errors
+**Successful response:** `201 Created`
 
-* `400 Bad Request` — a password is missing, the new password is too short, or the new password matches the current password.
-* `401 Unauthorized` — the current password is incorrect.
-* `404 Not Found` — user not found.
-* `500 Internal Server Error` — password change failed.
+Returns the newly created product.
 
-## 9. Deactivate Own Account
+### 4.2 Get all products
 
-Allows a user to deactivate their own account.
+**Endpoint:** `GET /api/products/getAllProducts`
 
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/deactivateAccount`
-* **Access:** `USER`
-* **Authentication:** Protected
+**Access:** USER, ADMIN
 
-### Success response — `200 OK`
+* USER receives available products with stock greater than zero.
+* ADMIN can retrieve all products, including unavailable products.
+
+### 4.3 Get a product by ID
+
+**Endpoint:** `GET /api/products/getProduct/:id`
+
+**Access:** USER, ADMIN
+
+Returns the specified product.
+
+### 4.4 Update a product
+
+**Endpoint:** `PATCH /api/products/updateProduct/:id`
+
+**Access:** ADMIN
+
+Updates permitted product fields.
+
+**Example request body:**
 
 ```json
 {
-  "success": true,
-  "message": "Account deactivated successfully",
-  "data": null
+  "price": 12000,
+  "quantity": 80,
+  "points": 60
 }
 ```
 
-An inactive account cannot log in until activated again.
+The controller validates numeric values and duplicate product names. Availability is updated based on stock and manual deactivation status.
 
-## 10. Deactivate a User Account
+### 4.5 Deactivate a product
 
-Allows an administrator to deactivate another user.
+**Endpoint:** `PATCH /api/products/deactivateProduct/:id`
 
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/deactivateUser/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Protected
+**Access:** ADMIN
 
-Replace `:id` with the target user's MongoDB ID.
+Marks the product as manually deactivated and unavailable.
 
-### Success response — `200 OK`
+### 4.6 Reactivate a product
 
-```json
-{
-  "success": true,
-  "message": "User account deactivated successfully",
-  "data": {
-    "id": "USER_ID",
-    "firstName": "Jane",
-    "lastName": "Doe",
-    "email": "jane@example.com",
-    "role": "USER",
-    "isActive": false
-  }
-}
-```
+**Endpoint:** `PATCH /api/products/reactivateProduct/:id`
 
-### Possible errors
+**Access:** ADMIN
 
-* `400 Bad Request` — an administrator cannot use this endpoint to deactivate their own account.
-* `404 Not Found` — user not found.
-* `500 Internal Server Error` — account deactivation failed.
+Reactivates a product only if its quantity is greater than zero.
 
-## 11. Activate a User Account
+### 4.7 Delete a product
 
-Allows an administrator to reactivate a user account.
+**Endpoint:** `DELETE /api/products/deleteProduct/:id`
 
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/activateUser/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Protected
+**Access:** ADMIN
 
-### Success response — `200 OK`
+Permanently deletes the specified product.
 
-```json
-{
-  "success": true,
-  "message": "User account activated successfully",
-  "data": {
-    "user": {
-      "id": "USER_ID",
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com",
-      "role": "USER",
-      "isActive": true
-    }
-  }
-}
-```
+### Product API errors
 
-### Possible errors
+Depending on the endpoint:
 
-* `404 Not Found` — user not found.
-* `500 Internal Server Error` — account activation failed.
+* `400` — Invalid input or invalid numeric values.
+* `404` — Product not found.
+* `409` — Duplicate product name.
+* `500` — Operation failed.
 
-## 12. Upload Profile Photo
+---
 
-Uploads a profile image to Cloudinary and saves its secure URL to the user's profile.
+# 5. Purchase Management API
 
-* **Method:** `PATCH`
-* **Endpoint:** `/api/auth/uploadProfilePhoto`
-* **Access:** Protected
-* **Authentication:** Bearer token required
-* **Content-Type:** `multipart/form-data`
+**Prefix:** `/api/purchases`
 
-### Request body
+All purchase routes require authentication.
 
-Send one file using the field name `profilePhoto`.
+### 5.1 Create a purchase
 
-### Success response — `200 OK`
+**Endpoint:** `POST /api/purchases/createPurchase`
+
+**Access:** USER
+
+**Request body:**
 
 ```json
 {
-  "success": true,
-  "message": "Profile photo uploaded successfully",
-  "data": {
-    "profilePhoto": "https://res.cloudinary.com/your-cloud/image/upload/example.jpg"
-  }
-}
-```
-
-### Possible errors
-
-* `400 Bad Request` — no image was supplied.
-* `500 Internal Server Error` — upload or storage failed.
-
-The returned URL can be used by the frontend to display the user's profile image.
-
-## 13. Email Verification Status
-
-The following routes are currently not active because they are commented out in the route file:
-
-* `POST /api/auth/verifyEmail`
-* `POST /api/auth/resendVerificationCode`
-
-Do not rely on these endpoints in the frontend until they are implemented and enabled.
-
-## Authentication and Security Notes
-
-* Passwords are hashed using `bcryptjs`.
-* Protected endpoints require a JWT obtained from successful login.
-* The `role` field determines access to administrator-only operations.
-* Password-reset codes expire after 10 minutes and are cleared after successful password reset.
-* Never expose passwords, JWT secrets, or password-reset codes in public responses.
-
-## Purchase API
-
-All endpoints are prefixed with `/api/purchases`.
-
-All purchase endpoints require authentication. Customers can create purchases and view their own purchase history. Administrators can view all purchases and individual customers' purchase histories.
-
-### 1. Create a Purchase
-
-Creates a purchase, updates product stock, and awards loyalty points.
-
-* **Method:** `POST`
-* **Endpoint:** `/api/purchases/createPurchase`
-* **Access:** `USER`
-* **Authentication:** Bearer token required
-
-**Request body**
-
-```json
-{
-  "productId": "PRODUCT_ID",
+  "productId": "PRODUCT_OBJECT_ID",
   "quantity": 2
 }
 ```
 
-**Validation rules**
+The controller validates the product ID, quantity, product availability, and available stock.
 
-* `productId` must be a valid MongoDB ObjectId.
-* `quantity` must be a positive integer.
-* The product must exist, be available, and have sufficient stock.
+The application calculates:
 
-**Success response — `201 Created`**
+* **Total price:** Product price multiplied by quantity.
+* **Points earned:** Product points multiplied by quantity.
+
+The purchase workflow uses a database transaction to coordinate purchase creation, stock reduction, loyalty point updates, and related records.
+
+If the user qualifies for a referral bonus, the first-purchase referral conditions are checked and the applicable bonus is recorded.
+
+**Successful response:** `201 Created`
+
+Returns purchase details, the points transaction, the updated points balance, total points earned, and quantity information.
+
+**Possible errors:**
+
+* `400` — Invalid product ID, invalid quantity, unavailable product, or insufficient stock.
+* `404` — Product or user not found.
+* `500` — Purchase could not be completed.
+
+### 5.2 Get the current user's purchase history
+
+**Endpoint:** `GET /api/purchases/getMyPurchaseHistory`
+
+**Access:** USER
+
+Returns the authenticated user's purchases, ordered from newest to oldest.
+
+### 5.3 Get all purchase histories
+
+**Endpoint:** `GET /api/purchases/getAllPurchaseHistory`
+
+**Access:** ADMIN
+
+Returns purchase records with relevant user and product information.
+
+### 5.4 Get a customer's purchase history
+
+**Endpoint:** `GET /api/purchases/getCustomerPurchaseHistory/:id`
+
+**Access:** ADMIN
+
+Returns purchase history for the specified user.
+
+### 5.5 Get a purchase by ID
+
+**Endpoint:** `GET /api/purchases/getPurchaseById/:id`
+
+**Access:** USER, ADMIN
+
+Returns the specified purchase.
+
+A USER may retrieve only their own purchase. An ADMIN may retrieve purchases across users.
+
+**Possible errors:**
+
+* `403` — A user attempts to access another user's purchase.
+* `404` — Purchase or specified user not found.
+* `500` — Retrieval failed.
+
+---
+
+# 6. Loyalty Points API
+
+**Prefix:** `/api/points`
+
+All points routes require authentication.
+
+### Points transaction fields
+
+A points transaction records the user, transaction type, points amount, description, and optional associated purchase.
+
+Transaction types include:
+
+* `Earned`
+* `Redeemed`
+* `Adjusted`
+
+### 6.1 Get my points history
+
+**Endpoint:** `GET /api/points/getMyPointsHistory`
+
+**Access:** USER
+
+Returns the authenticated user's points transaction history, including relevant purchase information where available.
+
+### 6.2 Get all points histories
+
+**Endpoint:** `GET /api/points/getAllPointsHistory`
+
+**Access:** ADMIN
+
+Returns points transactions across users, with relevant user and purchase information.
+
+### Points calculation
+
+Points are awarded according to the product's configured points value and the quantity purchased.
+
+For example, purchasing two units of a product worth 50 points per unit earns:
+
+`50 × 2 = 100 points`
+
+The points balance is updated as part of the purchase workflow.
+
+Redeeming a reward deducts the required points and records a `Redeemed` points transaction.
+
+---
+
+# 7. Rewards and Redemption API
+
+**Prefix:** `/api/rewards`
+
+### Reward fields
+
+| Field            | Description                     |
+| ---------------- | ------------------------------- |
+| `name`           | Reward name                     |
+| `description`    | Reward description              |
+| `pointsRequired` | Points required for redemption  |
+| `quantity`       | Available reward stock          |
+| `isAvailable`    | Whether the reward is available |
+| `featured`       | Whether the reward is featured  |
+
+### 7.1 Create a reward
+
+**Endpoint:** `POST /api/rewards/createReward`
+
+**Access:** ADMIN
+
+**Request body:**
+
+```json
+{
+  "name": "Free Coffee",
+  "description": "Redeem points for a free coffee.",
+  "pointsRequired": 100,
+  "quantity": 20,
+  "featured": true
+}
+```
+
+`featured` is optional and defaults to `false`.
+
+The reward must have a positive stock quantity to be featured.
+
+**Successful response:** `201 Created`
+
+Returns the created reward. The controller also attempts to notify active users about newly created rewards.
+
+### 7.2 Get available rewards
+
+**Endpoint:** `GET /api/rewards/getRewards`
+
+**Access:** USER
+
+Returns available rewards with stock greater than zero, ordered by points required.
+
+### 7.3 Get all rewards
+
+**Endpoint:** `GET /api/rewards/getAllRewards`
+
+**Access:** ADMIN
+
+Returns all rewards, including unavailable rewards.
+
+### 7.4 Redeem a reward
+
+**Endpoint:** `POST /api/rewards/redeemReward`
+
+**Access:** USER
+
+**Request body:**
+
+```json
+{
+  "rewardId": "REWARD_OBJECT_ID"
+}
+```
+
+The controller checks reward availability, stock, and the user's points balance.
+
+A successful redemption:
+
+1. Reserves one unit of reward stock.
+2. Deducts the required points.
+3. Creates a redemption record.
+4. Creates a points transaction of type `Redeemed`.
+5. Updates reward availability when stock is exhausted.
+6. Attempts to notify the user.
+
+The redemption workflow uses a database transaction to coordinate the related changes.
+
+**Successful response:** `201 Created`
+
+Returns the redemption record, points transaction, reward name, points used, remaining points, and remaining reward quantity.
+
+**Possible errors:**
+
+* `400` — Invalid request, unavailable reward, insufficient points, or no stock.
+* `404` — Reward or user not found.
+* `409` — Transaction conflict.
+* `500` — Redemption failed.
+
+### 7.5 Get my redemption history
+
+**Endpoint:** `GET /api/rewards/getMyRedemptionHistory`
+
+**Access:** USER
+
+Returns the authenticated user's redemption history.
+
+### 7.6 Get all redemption histories
+
+**Endpoint:** `GET /api/rewards/getAllRedemptionHistory`
+
+**Access:** ADMIN
+
+Returns redemption records across users, with relevant user and reward information.
+
+### 7.7 Deactivate a reward
+
+**Endpoint:** `PATCH /api/rewards/deactivateReward/:id`
+
+**Access:** ADMIN
+
+Marks the specified reward as unavailable and removes its featured status.
+
+### 7.8 Reactivate a reward
+
+**Endpoint:** `PATCH /api/rewards/reactivateReward/:id`
+
+**Access:** ADMIN
+
+Reactivates a reward only if stock is available.
+
+### 7.9 Toggle a reward's featured status
+
+**Endpoint:** `PATCH /api/rewards/toggleFeatured/:id`
+
+**Access:** ADMIN
+
+Changes the reward's featured status, subject to availability and stock restrictions.
+
+### 7.10 Get featured rewards
+
+**Endpoint:** `GET /api/rewards/featured`
+
+**Access:** USER
+
+Returns featured rewards that are available and have stock greater than zero.
+
+---
+
+# 8. Favorites API
+
+**Prefix:** `/api/favorites`
+
+All favorites routes require authentication and the `USER` role.
+
+### 8.1 Add a product to favorites
+
+**Endpoint:** `POST /api/favorites/:productId`
+
+**Access:** USER
+
+Adds the specified product to the authenticated user's favorites.
+
+**Possible errors:**
+
+* `400` — Product is already in favorites or the request is invalid.
+* `404` — Product not found.
+
+### 8.2 Get favorites
+
+**Endpoint:** `GET /api/favorites`
+
+**Access:** USER
+
+Returns the authenticated user's favorite products, with product information populated.
+
+### 8.3 Remove a product from favorites
+
+**Endpoint:** `DELETE /api/favorites/:productId`
+
+**Access:** USER
+
+Removes the specified product from the authenticated user's favorites.
+
+---
+
+# 9. Notifications API
+
+**Prefix:** `/api/notifications`
+
+All notification endpoints require authentication.
+
+Notifications belong to individual users and include a title, optional body, read status, and timestamps.
+
+### 9.1 Get my notifications
+
+**Endpoint:** `GET /api/notifications/getMyNotifications`
+
+**Access:** Authenticated user
+
+Returns the authenticated user's notifications, ordered from newest to oldest.
+
+### 9.2 Mark all notifications as read
+
+**Endpoint:** `PATCH /api/notifications/markAllNotificationsRead`
+
+**Access:** Authenticated user
+
+Marks the authenticated user's notifications as read.
+
+### 9.3 Mark one notification as read
+
+**Endpoint:** `PATCH /api/notifications/markNotificationRead/:id`
+
+**Access:** Authenticated user
+
+Marks the specified notification as read, provided it belongs to the authenticated user.
+
+**Possible errors:**
+
+* `404` — Notification not found or not accessible to the current user.
+* `500` — Update failed.
+
+### 9.4 Delete read notifications
+
+**Endpoint:** `DELETE /api/notifications/deleteReadNotifications`
+
+**Access:** Authenticated user
+
+Deletes read notifications belonging to the authenticated user. It does not delete other users' notifications.
+
+---
+
+# 10. General Request and Response Guidelines
+
+### JSON requests
+
+For JSON request bodies, include:
+
+`Content-Type: application/json`
+
+The profile photo upload endpoint instead uses `multipart/form-data`.
+
+### Authentication
+
+For protected endpoints, include:
+
+`Authorization: Bearer <your_token>`
+
+The token is obtained through a successful login.
+
+### Response structure
+
+Response formats vary by endpoint. Many successful responses use fields such as:
 
 ```json
 {
   "success": true,
-  "message": "Purchase created successfully",
-  "data": {
-    "purchase": {
-      "_id": "PURCHASE_ID",
-      "user": "USER_ID",
-      "product": "PRODUCT_ID",
-      "productName": "Banana Flavoured ice-cream",
-      "quantity": 2,
-      "pricePerUnit": 10000,
-      "totalPrice": 20000,
-      "pointsEarned": 100,
-      "status": "Completed"
-    },
-    "point": {
-      "user": "USER_ID",
-      "type": "Earned",
-      "points": 100,
-      "description": "Points earned from purchase of Banana Flavoured ice-cream",
-      "purchase": "PURCHASE_ID"
-    },
-    "pointsBalance": 200,
-    "totalPointsEarned": 300,
-    "quantity": 84
-  }
+  "message": "Operation completed successfully",
+  "data": {}
 }
 ```
 
-The values above are illustrative. Actual values depend on the product, quantity, and customer's existing points balance.
+This is an illustrative format; consult each endpoint's implementation for its exact response structure.
 
-**Purchase processing**
+### Validation
 
-1. Validates the product ID and quantity.
-2. Checks product availability and remaining stock.
-3. Calculates the total price and points earned.
-4. Records the purchase and reduces stock.
-5. Updates the customer's points balance and lifetime points earned.
-6. Creates a points transaction.
-7. Awards a **100-point referral bonus** to the referring user when the customer makes their first purchase and meets the referral conditions.
-8. Commits the database transaction.
-9. Attempts to create a purchase notification.
+The API validates relevant fields, including required values, numeric limits, identifiers, stock quantities, and points balances.
 
-If stock reaches zero, the product is marked unavailable.
+### Error handling
 
-**Possible errors**
+Errors are returned with appropriate HTTP status codes and messages based on the endpoint and the type of failure.
 
-* `400 Bad Request` — invalid product ID, missing required fields, invalid quantity, unavailable product, or insufficient stock.
-* `404 Not Found` — product or user not found.
-* `500 Internal Server Error` — unable to complete the purchase.
+---
 
-The purchase transaction is rolled back when an operation within the transaction fails. Notification creation happens after the transaction commits, so a notification failure does not undo a successful purchase.
+# 11. Important Implementation Notes
 
-### 2. Get My Purchase History
+* Email verification and resend-verification routes are currently commented out and are not active public endpoints.
+* Password recovery uses a time-limited reset code.
+* Product and reward availability depends on stock and administrative status.
+* Purchases and redemptions update associated records using database transactions.
+* Purchase and redemption notifications are attempted after the primary transaction completes; a notification failure does not undo the completed operation.
+* User-facing routes are protected by authentication and role checks where configured.
+* Individual purchase retrieval includes an ownership check for USER accounts.
 
-Retrieves the authenticated customer's purchases, newest first.
+---
 
-* **Method:** `GET`
-* **Endpoint:** `/api/purchases/getMyPurchaseHistory`
-* **Access:** `USER`
-* **Authentication:** Bearer token required
+# 12. API Endpoint Summary
 
-**Success response — `200 OK`**
+| Area                | Method | Endpoint                                        | Access        |
+| ------------------- | ------ | ----------------------------------------------- | ------------- |
+| Authentication      | POST   | `/api/auth/createUser`                          | Public        |
+| Authentication      | POST   | `/api/auth/loginUser`                           | Public        |
+| Password recovery   | POST   | `/api/auth/forgotPassword`                      | Public        |
+| Password recovery   | POST   | `/api/auth/resetPassword`                       | Public        |
+| User profile        | GET    | `/api/auth/getUser`                             | Authenticated |
+| User management     | GET    | `/api/auth/getAllUsers`                         | ADMIN         |
+| User profile        | PATCH  | `/api/auth/updateUser`                          | Authenticated |
+| Password management | PATCH  | `/api/auth/changePassword`                      | Authenticated |
+| Account management  | PATCH  | `/api/auth/deactivateAccount`                   | USER          |
+| User management     | PATCH  | `/api/auth/deactivateUser/:id`                  | ADMIN         |
+| User management     | PATCH  | `/api/auth/activateUser/:id`                    | ADMIN         |
+| Profile photo       | PATCH  | `/api/auth/uploadProfilePhoto`                  | Authenticated |
+| Products            | POST   | `/api/products/createProduct`                   | ADMIN         |
+| Products            | GET    | `/api/products/getAllProducts`                  | USER, ADMIN   |
+| Products            | GET    | `/api/products/getProduct/:id`                  | USER, ADMIN   |
+| Products            | PATCH  | `/api/products/updateProduct/:id`               | ADMIN         |
+| Products            | PATCH  | `/api/products/deactivateProduct/:id`           | ADMIN         |
+| Products            | PATCH  | `/api/products/reactivateProduct/:id`           | ADMIN         |
+| Products            | DELETE | `/api/products/deleteProduct/:id`               | ADMIN         |
+| Purchases           | POST   | `/api/purchases/createPurchase`                 | USER          |
+| Purchases           | GET    | `/api/purchases/getMyPurchaseHistory`           | USER          |
+| Purchases           | GET    | `/api/purchases/getAllPurchaseHistory`          | ADMIN         |
+| Purchases           | GET    | `/api/purchases/getCustomerPurchaseHistory/:id` | ADMIN         |
+| Purchases           | GET    | `/api/purchases/getPurchaseById/:id`            | USER, ADMIN   |
+| Points              | GET    | `/api/points/getMyPointsHistory`                | USER          |
+| Points              | GET    | `/api/points/getAllPointsHistory`               | ADMIN         |
+| Rewards             | POST   | `/api/rewards/createReward`                     | ADMIN         |
+| Rewards             | GET    | `/api/rewards/getRewards`                       | USER          |
+| Rewards             | GET    | `/api/rewards/getAllRewards`                    | ADMIN         |
+| Rewards             | POST   | `/api/rewards/redeemReward`                     | USER          |
+| Redemptions         | GET    | `/api/rewards/getMyRedemptionHistory`           | USER          |
+| Redemptions         | GET    | `/api/rewards/getAllRedemptionHistory`          | ADMIN         |
+| Rewards             | PATCH  | `/api/rewards/deactivateReward/:id`             | ADMIN         |
+| Rewards             | PATCH  | `/api/rewards/reactivateReward/:id`             | ADMIN         |
+| Rewards             | PATCH  | `/api/rewards/toggleFeatured/:id`               | ADMIN         |
+| Rewards             | GET    | `/api/rewards/featured`                         | USER          |
+| Favorites           | POST   | `/api/favorites/:productId`                     | USER          |
+| Favorites           | GET    | `/api/favorites`                                | USER          |
+| Favorites           | DELETE | `/api/favorites/:productId`                     | USER          |
+| Notifications       | GET    | `/api/notifications/getMyNotifications`         | Authenticated |
+| Notifications       | PATCH  | `/api/notifications/markAllNotificationsRead`   | Authenticated |
+| Notifications       | PATCH  | `/api/notifications/markNotificationRead/:id`   | Authenticated |
+| Notifications       | DELETE | `/api/notifications/deleteReadNotifications`    | Authenticated |
 
-```json
-{
-  "success": true,
-  "message": "Purchases retrieved successfully",
-  "data": {
-    "purchases": []
-  }
-}
-```
+---
 
-Each purchase includes populated product details: `name`, `size`, `description`, `price`, and `points`.
+## 13. Conclusion
 
-**Error response — `500 Internal Server Error`**
+This document consolidates the Customer Loyalty App's authentication, user management, product management, purchases, loyalty points, rewards, redemption, favorites, and notifications APIs into a single reference.
 
-```json
-{
-  "success": false,
-  "message": "Failed to retrieve purchase history",
-  "data": null
-}
-```
-
-### 3. Get All Purchase History
-
-Retrieves all purchases, newest first.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/purchases/getAllPurchaseHistory`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Purchases retrieved successfully",
-  "data": []
-}
-```
-
-Each purchase includes populated user information (`firstName`, `lastName`, `email`, `phone`, `pointsBalance`, `isActive`, `isEmailVerified`) and product information (`name`, `size`, `price`, `points`).
-
-**Possible errors**
-
-* `401 Unauthorized` — missing or invalid authentication.
-* `403 Forbidden` — insufficient role permissions.
-* `500 Internal Server Error` — unable to retrieve all purchases.
-
-### 4. Get a Customer's Purchase History
-
-Retrieves all purchases associated with a specified user.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/purchases/getCustomerPurchaseHistory/:id`
-* **Access:** `ADMIN`
-* **Authentication:** Bearer token required
-
-Replace `:id` with the customer's MongoDB user ID.
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Purchase retrieved successfully",
-  "data": {
-    "user": {
-      "id": "USER_ID",
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com",
-      "phone": "08012345678",
-      "pointsBalance": 200
-    },
-    "purchases": []
-  }
-}
-```
-
-**Possible errors**
-
-* `404 Not Found` — user not found.
-* `500 Internal Server Error` — unable to retrieve the customer's purchases.
-
-### 5. Get a Purchase by ID
-
-Retrieves an individual purchase by its MongoDB ID.
-
-* **Method:** `GET`
-* **Endpoint:** `/api/purchases/getPurchaseById/:id`
-* **Access:** `USER`, `ADMIN`
-* **Authentication:** Bearer token required
-
-Replace `:id` with the purchase ID.
-
-Customers may view only their own purchases. Administrators may view any purchase.
-
-**Success response — `200 OK`**
-
-```json
-{
-  "success": true,
-  "message": "Purchase retrieved successfully",
-  "data": {
-    "_id": "PURCHASE_ID",
-    "user": {
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com"
-    },
-    "product": {
-      "name": "Banana Flavoured ice-cream",
-      "size": "Medium",
-      "quantity": 84,
-      "price": 10000,
-      "points": 50
-    },
-    "productName": "Banana Flavoured ice-cream",
-    "quantity": 2,
-    "pricePerUnit": 10000,
-    "totalPrice": 20000,
-    "pointsEarned": 100,
-    "status": "Completed"
-  }
-}
-```
-
-**Possible errors**
-
-* `403 Forbidden` — a customer attempts to view another customer's purchase.
-* `404 Not Found` — purchase not found.
-* `500 Internal Server Error` — unable to retrieve the purchase.
-
-### Purchase Data Fields
-
-| Field          | Description                                             |
-| -------------- | ------------------------------------------------------- |
-| `user`         | Reference to the customer who made the purchase         |
-| `product`      | Reference to the product purchased                      |
-| `productName`  | Product name stored at purchase time                    |
-| `quantity`     | Number of units purchased                               |
-| `pricePerUnit` | Product price per unit at purchase time                 |
-| `totalPrice`   | Total cost of the purchase                              |
-| `pointsEarned` | Loyalty points awarded for the purchase                 |
-| `status`       | Purchase status: `Pending`, `Completed`, or `Cancelled` |
-
-Purchase records include `createdAt` and `updatedAt` timestamps.
-
-
+It is intended to help developers and assessors understand the available endpoints, required access levels, request formats, and principal application behaviours.

@@ -1,72 +1,80 @@
-Customer Loyalty App
+# Customer Loyalty App
 
-A full-stack customer loyalty and rewards application that allows users to earn points through purchases, track their points balance, explore available rewards, and redeem points for rewards.
+A full-stack customer loyalty and rewards application built to help customers earn points through purchases, track their loyalty balances, explore rewards, and redeem accumulated points.
 
-The application is built with React, Node.js, Express, and MongoDB.
+The application features a React frontend and a Node.js/Express backend connected to MongoDB, with authentication and role-based access for customers and administrators.
 
-🚀 Live Demo
--  Frontend: https://customer-loyalty-reward-app-frontend.onrender.com
--  Backend API: https://customer-loyalty-reward-app-uldx.onrender.com
--  GitHub Repository: https://github.com/kali-ship-bit/Customer-loyalty-reward-app
+## 🚀 Live Demo
 
-✨ Features
-Authentication and User Management
--  User registration and login.
--  Password hashing and JWT-based authentication.
--  User profile management.
--  Role-based access control for users and administrators.
+* **Frontend:** https://customer-loyalty-reward-app-frontend.onrender.com
+* **Backend API:** https://customer-loyalty-reward-app-uldx.onrender.com
+* **GitHub Repository:** https://github.com/kali-ship-bit/Customer-loyalty-reward-app
 
-Product Management
--  Create, view, update, and manage products.
--  Track product prices and available stock.
--  Control product availability.
--  Allow users to browse available products.
+## ✨ Features
 
-Purchases and Loyalty Points
--  Record customer purchases.
--  Calculate points earned from purchases.
--  Update product stock after purchases.
--  Maintain users' points balances and points transaction history.
+### Authentication and User Management
 
-Rewards and Redemption
--  Display available rewards.
--  Redeem rewards using accumulated points.
--  Check points balances and reward availability before redemption.
--  Record redemption transactions.
+* User registration and login.
+* Password hashing and JWT-based authentication.
+* User profile management.
+* Role-based access control for customers and administrators.
 
-Additional Features
--  Favorites management.
--  Notifications.
--  Responsive user interface.
--  Input validation and error handling.
+### Product Management
 
-🛠️ Technology Stack
+* Create, view, update, and manage products.
+* Track product prices and stock quantities.
+* Manage product availability.
+* Browse available products.
 
-Frontend
--  React
--  Vite
--  JavaScript
--  Tailwind CSS
--  DaisyUI
+### Purchases and Loyalty Points
 
-Backend
--  Node.js
--  Express.js
--  MongoDB
--  Mongoose
--  JSON Web Tokens (JWT)
--  bcryptjs
--  Helmet
--  CORS
+* Record customer purchases.
+* Calculate loyalty points earned from purchases.
+* Update product stock after successful purchases.
+* Track points balances and transaction history.
 
-Deployment and Tools
--  Render for application deployment.
--  MongoDB Atlas for cloud database hosting.
--  Git and GitHub for version control and collaboration.
+### Rewards and Redemption
 
-📁 Project Structure
+* Browse available rewards.
+* Redeem rewards using accumulated points.
+* Validate points balances and reward availability.
+* Record reward redemption transactions.
 
-The repository contains the frontend and backend components of the application.
+### Additional Features
+
+* Favorites management.
+* Notifications.
+* Responsive user interface.
+* Input validation and error handling.
+
+## 🛠️ Technology Stack
+
+### Frontend
+
+* React
+* Vite
+* JavaScript
+* Tailwind CSS
+* DaisyUI
+
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JSON Web Tokens (JWT)
+* bcryptjs
+* Helmet
+* CORS
+
+### Deployment and Development Tools
+
+* Render
+* MongoDB Atlas
+* Git and GitHub
+
+## 📁 Project Structure
 
 Customer-loyalty-reward-app/
 ├── backend/
@@ -75,127 +83,165 @@ Customer-loyalty-reward-app/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   ├── utils/
+│   ├── utilities/
 │   ├── app.js
 │   └── package.json
 ├── src/
+│   ├── config/
+│   ├── config/
+│   ├── config/
+│   ├── config/
+│   ├── config/
+│   ├── config/
+│   ├── config/
 ├── .gitignore
 ├── index.html
 ├── package.json
 ├── README.md
 └── vite.config.js
 
-⚙️ Getting Started
-Prerequisites
+*The structure above is an overview. Actual directories may differ as the project evolves.*
 
-Install the following before running the project locally:
+## ⚙️ Getting Started
 
-Node.js and npm.
-MongoDB Atlas account or a suitable MongoDB instance.
-Git.
+### Prerequisites
 
-1. Clone the Repository
+Install the following:
+
+* [Node.js](https://nodejs.org/)
+* npm, included with Node.js
+* A MongoDB Atlas account or another compatible MongoDB instance
+* Git
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/kali-ship-bit/Customer-loyalty-reward-app.git
 cd Customer-loyalty-reward-app
+```
 
-2. Configure the Backend
+### 2. Configure the Backend
 
-Navigate to the backend directory:
+Navigate to the backend directory and install dependencies:
 
+```bash
 cd backend
 npm install
+```
 
-Create a .env file inside the backend directory.
+Create a `.env` file inside the `backend/` directory.
 
-Configure the environment variables required by your backend:
+Configure the variables required by your backend. For example:
 
+```env
 PORT=3000
 FRONTEND_URL=http://localhost:5173
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
+```
 
-Add other environment variables only when the corresponding integrations are enabled in your application.
+Your application may require additional variables depending on its enabled integrations. Check the backend configuration before starting the server.
 
-Security: Never commit your .env file, database credentials, JWT secret, or API keys to GitHub.
+Start the backend using the appropriate script from `backend/package.json`. For example:
 
-Start the backend using the appropriate script defined in backend/package.json, for example:
-
+```bash
 npm run dev
-3. Configure the Frontend
+```
 
-Open a second terminal and navigate to the project root:
+### 3. Configure the Frontend
 
+Open a second terminal and return to the project root:
+
+```bash
 cd Customer-loyalty-reward-app
 npm install
+```
 
-Create a .env file in the frontend root:
+Create a `.env` file in the frontend root:
 
+```env
 VITE_API_URL=http://localhost:3000/api
+```
 
-This assumes the frontend uses VITE_API_URL as its API base URL and appends endpoint paths without duplicating /api.
+This assumes the frontend uses `VITE_API_URL` as its API base URL and appends endpoint paths without duplicating `/api`.
 
 Start the frontend:
 
+```bash
 npm run dev
+```
 
-Open the local URL displayed by Vite, typically:
+Open the local URL provided by Vite, typically:
 
+```text
 http://localhost:5173
+```
 
-🌐 API Configuration
+### Environment Variable Security
 
-The backend exposes API routes under the /api prefix.
+Never commit `.env` files, database credentials, JWT secrets, or API keys to GitHub. Keep local environment files excluded through `.gitignore`.
 
-Examples of route groups include:
+## 🌐 API Overview
 
-/api/auth — Authentication and user management.
-/api/products — Product management.
-/api/purchases — Purchase records.
-/api/points — Loyalty points and transactions.
-/api/rewards — Rewards and redemption.
-/api/favorites — Favorite items.
-/api/notifications — Notifications.
+The backend exposes API routes under the `/api` prefix.
 
-The exact endpoints, HTTP methods, required authentication, request bodies, and responses should be documented separately or added to this README.
+Route groups include:
 
-🧪 Testing
+| Route                | Purpose                            |
+| -------------------- | ---------------------------------- |
+| `/api/auth`          | Authentication and user management |
+| `/api/products`      | Product management                 |
+| `/api/purchases`     | Purchase records                   |
+| `/api/points`        | Loyalty points and transactions    |
+| `/api/rewards`       | Rewards and redemption             |
+| `/api/favorites`     | Favorites management               |
+| `/api/notifications` | Notifications                      |
 
-The application has been manually tested for its main user flows, including:
+For endpoint details, including HTTP methods, authentication requirements, request bodies, and response formats, consult the project's API documentation if available.
 
-User registration and login.
-Dashboard and product loading.
-Purchases and points updates.
-Rewards redemption.
-Relevant input validation and role restrictions.
+## 🧪 Testing
 
-Automated test coverage and results should be documented separately if required by the project submission.
+The application has undergone manual testing of its main user flows, including:
 
-🔐 Security Considerations
-Passwords are hashed before storage.
-JWTs are used for authenticated requests.
-Protected routes enforce authentication and appropriate authorization.
-Environment variables are used for sensitive configuration.
-CORS restricts browser access to configured frontend origins.
-Request validation and centralized error handling help manage invalid requests and failures.
+* User registration and login.
+* Dashboard and product loading.
+* Purchases and points updates.
+* Reward redemption.
+* Input validation and role restrictions.
 
-👥 Contributors
+Automated test coverage should be documented separately once tests have been implemented and executed.
+
+## 🔐 Security
+
+Security measures used by the application include:
+
+* Password hashing.
+* JWT-based authentication.
+* Protected routes and role-based authorization.
+* Environment variables for sensitive configuration.
+* CORS configuration.
+* Request validation and error handling.
+
+Security configurations should be reviewed and tested as the application evolves.
+
+## 👥 Contributors
 
 This project was developed collaboratively as part of the TS Academy full-stack capstone project.
 
--  Ajube Tamaradiepreye Daniella
--  Rebecca Woryi
--  Godwin Divine
--  Kenneth Goddy-natus
--  Qudus
--  Ayobami
--  Bambam
+* Ajube Tamaradiepreye Daniella
+* Rebecca Woryi
+* Godwin Divine
+* Kenneth Goddy-natus
+* Qudus
+* Ayobami
+* Bambam
 
-📌 Future Improvements
+## 📌 Future Improvements
 
-Potential future improvements include:
+Potential improvements include:
 
-Automated backend and frontend tests.
-More comprehensive API documentation.
-Performance monitoring and optimization.
-Improved loading states and user feedback.
-Additional accessibility and security testing.
+* Automated frontend and backend tests.
+* Expanded API documentation.
+* Performance monitoring and optimization.
+* Improved loading states and user feedback.
+* Additional accessibility and security testing.
